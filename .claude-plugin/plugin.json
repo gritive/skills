@@ -1,0 +1,11 @@
+{
+  "name": "gritive",
+  "version": "0.1.0",
+  "description": "Comprehensive codebase review plugin with 6 parallel review agents covering architecture, refactoring, dead code, performance, security, and frontend. Includes persona-based UX testing.",
+  "author": {
+    "name": "Choe, Cheng-Dae"
+  },
+  "repository": "https://github.com/gritive/skills",
+  "keywords": ["code-review", "architecture", "security", "performance", "dead-code", "refactoring", "frontend", "persona-test"],
+  "license": "MIT"
+}

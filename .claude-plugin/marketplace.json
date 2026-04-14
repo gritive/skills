@@ -1,0 +1,18 @@
+{
+  "name": "gritive-skills",
+  "owner": {
+    "name": "Gritive",
+    "email": "charlie.choe@gritive.com"
+  },
+  "metadata": {
+    "description": "Comprehensive codebase review with 6 parallel agents + persona-based UX testing.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "gritive",
+      "description": "6개 병렬 리뷰 에이전트(아키텍처, 리팩토링, 데드코드, 성능, 보안, 프론트엔드)로 코드베이스 종합 점검 + 페르소나 기반 UX 테스트.",
+      "source": "./"
+    }
+  ]
+}
