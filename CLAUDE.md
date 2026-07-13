@@ -11,16 +11,25 @@
 ## Agent Contract
 
 리뷰 에이전트 공통 규칙:
-- 모든 에이전트는 `scope` (backend/frontend/all)을 프롬프트에서 받는다
+- 모든 에이전트는 프롬프트에서 `mode` (base-diff/full), `scope` (backend/frontend/all),
+  `files` (대상 파일 목록, base-diff일 때만)를 받는다
+- **기본은 `base-diff`다.** 전체 코드베이스 스캔은 `mode=full`일 때만 한다
+- `base-diff`에서 발견 사항은 `files` 안에 위치해야 한다. 문맥 파악을 위해 코드베이스 전체를
+  읽는 것은 허용된다 — **읽는 범위 ≠ 보고 범위**
+- `files`가 비면 "대상 없음"으로 종료한다. **전체 스캔으로 폴백하지 않는다**
 - 시작 시 반드시 프로젝트의 CLAUDE.md를 읽고 규칙을 반영한다
 - 심각도 체계: CRITICAL / HIGH / MEDIUM / LOW
 - 코드 수정은 하지 않는다 — 발견 사항만 보고한다
 - 출력은 구조화된 마크다운 테이블 형식이다
+
+전역 그래프가 필요한 항목(순환 의존, 번들 크기, 미사용 의존성, 고아 파일 전수조사 등)은
+각 에이전트가 `base-diff` 모드에서의 축소 규칙을 자기 파일에 정의한다.
 
 ## Development
 
 에이전트 추가/수정 시:
 - `agents/` 디렉토리에 `.md` 파일 생성
 - frontmatter에 `name`, `description`, `model`, `tools` 포함
-- 공통 인터페이스 계약 준수 (scope, CLAUDE.md 로딩, 심각도 통일, 읽기 전용, 테이블 출력)
+- 공통 인터페이스 계약 준수 (mode/scope/files, CLAUDE.md 로딩, 심각도 통일, 읽기 전용, 테이블 출력)
+- 전역 스캔이 필요한 점검 항목이 있으면 `base-diff` 모드에서의 축소 규칙을 반드시 명시
 - `codebase-review/SKILL.md`의 도메인 테이블에 추가
