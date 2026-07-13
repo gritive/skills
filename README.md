@@ -6,7 +6,9 @@
 
 ### Codebase Review (`/codebase-review`)
 
-6개 전문 리뷰 에이전트를 병렬 실행하여 코드베이스를 종합 점검합니다.
+6개 전문 리뷰 에이전트를 병렬 실행하여 코드를 종합 점검합니다.
+
+**기본 대상은 base branch 대비 변경분입니다.** 전체 코드베이스 스캔은 `full`을 명시했을 때만 수행합니다.
 
 | 도메인       | 에이전트            | 점검 항목                                     |
 | ------------ | ------------------- | --------------------------------------------- |
@@ -18,13 +20,18 @@
 | Frontend     | `frontend-reviewer` | 타입 안전성, 컴포넌트 품질, a11y, 상태 관리   |
 
 ```
-/codebase-review                          # since-last (이력 없으면 전체), 6개 도메인
-/codebase-review --full                   # 전체 코드베이스, 6개 도메인
-/codebase-review backend                  # 백엔드만, Frontend 제외
-/codebase-review frontend                 # 프론트엔드만
-/codebase-review --domain perf,security   # 특정 도메인만
-/codebase-review --changed                # 미커밋 변경분만
+/codebase-review                          # base branch 대비 변경분, 6개 도메인 (기본)
+/codebase-review full                     # 전체 코드베이스, 6개 도메인
+/codebase-review main..HEAD               # 지정 diff (git revision 표현식 그대로)
+/codebase-review abc123                   # abc123...HEAD diff
+/codebase-review --working                # 미커밋 변경분
+/codebase-review --staged                 # 스테이징된 변경분
+/codebase-review backend                  # base diff 중 백엔드 파일만, Frontend 도메인 제외
+/codebase-review --domain perf,security   # base diff 대상, 특정 도메인만
 ```
+
+base branch는 `origin/HEAD` → `origin/main` → `origin/master` → `main` → `master` 순으로 탐지합니다.
+대상 파일이 0개이거나 base branch 탐지에 실패하면 **전체 스캔으로 폴백하지 않고 중단**합니다.
 
 ### Persona Test (`/persona-test`)
 
@@ -106,7 +113,30 @@ gritive/
 
 모든 리뷰 에이전트는 공통 인터페이스를 따릅니다:
 
-- `scope` 파라미터 수용 (`backend`, `frontend`, `all`)
+| 입력    | 값                                                       |
+| ------- | -------------------------------------------------------- |
+| `mode`  | `base-diff` (기본) 또는 `full`                           |
+| `scope` | `backend` / `frontend` / `all`                           |
+| `base`  | 리뷰 기준 revision 표현식 (`origin/main...HEAD` 등)      |
+| `files` | 리뷰 대상 파일 목록 (`mode=base-diff`일 때만 전달)       |
+
+**범위 규칙**
+
+- `mode=base-diff`: `files`에 있는 파일만 리뷰 대상. 발견 사항은 이 목록 안에 위치해야 합니다.
+- 판정에 필요한 문맥은 코드베이스 전체를 읽어도 됩니다 — **읽는 범위 ≠ 보고 범위**.
+- `files`가 비면 "대상 없음"으로 종료합니다. **전체 스캔으로 확장하지 않습니다.**
+- `mode=full`일 때만 코드베이스 전체가 대상입니다.
+- 전역 그래프가 필요한 항목(순환 의존, 번들 크기, 미사용 의존성 등)은 에이전트별로
+  `base-diff` 모드에서의 축소 규칙을 정의합니다.
+- **유일한 예외**: `deadcode-reviewer`는 이 변경이 마지막 호출을 제거해 고아가 된 심볼을
+  `files` 밖이어도 보고합니다 (근거 명시, 1홉까지).
+
+**리뷰 단위는 '변경된 파일'이지 '변경된 라인'이 아닙니다.** 900줄 파일에서 3줄만 고쳐도 900줄
+전체가 리뷰 대상입니다 — 파일 전체 맥락을 봐야 아키텍처·보안 이슈를 놓치지 않기 때문입니다.
+대신 건드리지 않은 기존 코드의 이슈도 보고될 수 있습니다.
+
+**공통 규칙**
+
 - 시작 시 CLAUDE.md를 읽고 프로젝트 규칙 반영
 - 통일된 심각도 체계: `CRITICAL` / `HIGH` / `MEDIUM` / `LOW`
 - 구조화된 테이블 형식 출력
