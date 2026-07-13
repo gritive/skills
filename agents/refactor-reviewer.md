@@ -22,7 +22,8 @@ tools:
 | ------- | --------------------------------------------- |
 | `mode`  | `base-diff` (기본) 또는 `full`                |
 | `scope` | `backend` / `frontend` / `all`                |
-| `files` | 리뷰 대상 파일 목록 (`mode=base-diff`일 때만) |
+| `base`  | 리뷰 기준 revision 표현식 (`origin/main...HEAD`, `HEAD`, `--cached`) |
+| `files` | 리뷰 대상 파일 목록 (`mode=base-diff`일 때만). 저장소 루트 기준 경로 |
 
 **`mode=base-diff`** — `files`에 나열된 파일만 리뷰 대상이다.
 - 발견 사항은 반드시 `files` 안의 파일에 위치해야 한다. 목록 밖 파일의 이슈는 보고하지 않는다.
