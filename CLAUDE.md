@@ -66,6 +66,10 @@ skills / agents / hooks 로만 컨텍스트를 기여하고, `plugin.json`에는
 에이전트 추가/수정 시:
 - `agents/` 디렉토리에 `.md` 파일 생성
 - frontmatter에 `name`, `description`, `model`, `tools` 포함
+- **스킬에서 호출할 때는 `subagent_type="gritive:<name>"`으로 플러그인 이름을 접두사로 붙인다.**
+  접두사 없이 `arch-reviewer`로 부르면 `Agent type not found`로 실패한다
+- 에이전트 정의를 고쳐도 **실행 중인 세션에는 반영되지 않는다.** 세션은 설치된 사본
+  (`~/.claude/plugins/cache/`)을 쓴다. 실제 동작 확인은 플러그인 업데이트 후에 해야 한다
 - 공통 인터페이스 계약 준수 (mode/scope/base/files, CLAUDE.md 로딩, 심각도 통일, 읽기 전용, 테이블 출력)
 - 전역 스캔이 필요한 점검 항목이 있으면 `base-diff` 모드에서의 축소 규칙을 반드시 명시
 - `codebase-review/SKILL.md`의 도메인 테이블에 추가
