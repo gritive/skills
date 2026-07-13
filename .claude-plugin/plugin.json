@@ -1,6 +1,6 @@
 {
   "name": "gritive",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Comprehensive codebase review plugin with 6 parallel review agents covering architecture, refactoring, dead code, performance, security, and frontend. Includes persona-based UX testing.",
   "author": {
     "name": "Choe, Cheng-Dae"
