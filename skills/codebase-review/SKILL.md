@@ -174,7 +174,7 @@ git 명령이 실패하거나 목록이 예상보다 크다는 것은 `full`로 
 Agent(subagent_type="<domain>-reviewer", prompt="
   mode: {base-diff | full}
   scope: {backend | frontend | all}
-  base: {실제 사용한 revision 표현식 — 예: origin/main...HEAD, HEAD, --cached}
+  base: {실제 사용한 git diff 인자 — 예: origin/main...HEAD (기본), HEAD (--working), --cached (--staged)}
   files:
   {대상 파일 목록 — mode=base-diff일 때만. 저장소 루트 기준 경로. 한 줄에 하나씩}
 

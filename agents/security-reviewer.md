@@ -22,8 +22,12 @@ tools:
 | ------- | --------------------------------------------- |
 | `mode`  | `base-diff` (기본) 또는 `full`                |
 | `scope` | `backend` / `frontend` / `all`                |
-| `base`  | 리뷰 기준 revision 표현식 (`origin/main...HEAD`, `HEAD`, `--cached`) |
+| `base`  | `git diff`에 넘길 리뷰 기준 인자. revision 표현식이거나 플래그다 (`origin/main...HEAD`, `HEAD`, `--cached`) |
 | `files` | 리뷰 대상 파일 목록 (`mode=base-diff`일 때만). 저장소 루트 기준 경로 |
+
+**`scope`는 참고용이다.** 스킬이 이미 `scope`로 `files`를 필터링했으므로, `scope`를 하드 게이트로
+다시 검사해 스스로 종료하지 않는다 (`--domain`으로 강제 호출될 수 있고, 그때 자체 게이트는
+스킬의 도메인 필터와 충돌한다). 대상 여부는 `files`가 정한다.
 
 **`mode=base-diff`** — `files`에 나열된 파일만 리뷰 대상이다.
 - 발견 사항은 반드시 `files` 안의 파일에 위치해야 한다. 목록 밖 파일의 이슈는 보고하지 않는다.
