@@ -179,8 +179,11 @@ git 명령이 실패하거나 목록이 예상보다 크다는 것은 `full`로 
 
 **필터링된 에이전트를 동시에 실행한다.** 각 에이전트에 아래 계약을 그대로 전달한다.
 
+`subagent_type`은 **플러그인 이름을 접두사로 붙인 `gritive:` 형태**여야 한다. 접두사 없이
+`arch-reviewer`로 부르면 `Agent type not found`로 실패한다.
+
 ```
-Agent(subagent_type="<domain>-reviewer", prompt="
+Agent(subagent_type="gritive:<domain>-reviewer", prompt="
   mode: {base-diff | full}
   scope: {backend | frontend | all}
   base: {실제 사용한 git diff 인자 — 예: origin/main...HEAD (기본), HEAD (--working), --cached (--staged)}
