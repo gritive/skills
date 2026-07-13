@@ -36,6 +36,9 @@ base branch는 `origin/HEAD` → `origin/main` → `origin/master` → `main` �
 base branch 탐지 실패, `git diff` 실패(shallow clone의 `no merge base` 등), 대상 파일 0개,
 scope 필터링 후 0개, git 저장소가 아님. 대상이 500개를 넘으면 확인 후 진행합니다.
 
+리포트는 대화로 출력합니다. 파일로 저장하는 것은 요청 시 지정한 경로에만 하며, 대상 저장소에
+리뷰 산출물을 남기지 않습니다.
+
 **인자 규칙**
 
 - `full` / `backend` / `frontend` / `all`은 **예약어**입니다. 같은 이름의 브랜치를 리뷰하려면
