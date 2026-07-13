@@ -22,7 +22,7 @@ tools:
 | ------- | --------------------------------------------- |
 | `mode`  | `base-diff` (기본) 또는 `full`                |
 | `scope` | `backend` / `frontend` / `all`                |
-| `base`  | 리뷰 기준 revision 표현식 (`origin/main...HEAD`, `HEAD`, `--cached`) |
+| `base`  | `git diff`에 넘길 리뷰 기준 인자. revision 표현식이거나 플래그다 (`origin/main...HEAD`, `HEAD`, `--cached`) |
 | `files` | 리뷰 대상 파일 목록 (`mode=base-diff`일 때만). 저장소 루트 기준 경로 |
 
 **활성화 조건은 `files`가 결정한다.** `scope`를 자체적으로 다시 검사하지 않는다 —

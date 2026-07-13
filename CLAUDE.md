@@ -7,12 +7,15 @@
 - `agents/` — 6개 리뷰 에이전트 (arch, refactor, deadcode, perf, security, frontend)
 - `skills/codebase-review/` — 에이전트 오케스트레이션 스킬
 - `skills/persona-test/` — 페르소나 기반 서비스 테스트 스킬
+- `skills/setup/` — 프로젝트 CLAUDE.md 자동 설정 스킬
+- `scripts/push.sh` — 버전 bump + push (`git release` alias)
+- `.claude-plugin/` — `plugin.json` + `marketplace.json` (버전이 양쪽에 있으므로 항상 함께 bump)
 
 ## Agent Contract
 
 리뷰 에이전트 공통 규칙:
 - 모든 에이전트는 프롬프트에서 `mode` (base-diff/full), `scope` (backend/frontend/all),
-  `base` (리뷰 기준 revision), `files` (대상 파일 목록, base-diff일 때만)를 받는다
+  `base` (git diff에 넘길 리뷰 기준 인자), `files` (대상 파일 목록, base-diff일 때만)를 받는다
 - `files`는 **파일 목록이지 diff가 아니다.** 변경 내용이 필요하면 `git diff {base} -- {files}`로 본다.
   리뷰 단위는 '변경된 파일' 전체이지 '변경된 라인'이 아니다
 - **기본은 `base-diff`다.** 전체 코드베이스 스캔은 `mode=full`일 때만 한다
@@ -38,6 +41,6 @@
 에이전트 추가/수정 시:
 - `agents/` 디렉토리에 `.md` 파일 생성
 - frontmatter에 `name`, `description`, `model`, `tools` 포함
-- 공통 인터페이스 계약 준수 (mode/scope/files, CLAUDE.md 로딩, 심각도 통일, 읽기 전용, 테이블 출력)
+- 공통 인터페이스 계약 준수 (mode/scope/base/files, CLAUDE.md 로딩, 심각도 통일, 읽기 전용, 테이블 출력)
 - 전역 스캔이 필요한 점검 항목이 있으면 `base-diff` 모드에서의 축소 규칙을 반드시 명시
 - `codebase-review/SKILL.md`의 도메인 테이블에 추가

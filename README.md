@@ -31,7 +31,23 @@
 ```
 
 base branch는 `origin/HEAD` → `origin/main` → `origin/master` → `main` → `master` 순으로 탐지합니다.
-대상 파일이 0개이거나 base branch 탐지에 실패하면 **전체 스캔으로 폴백하지 않고 중단**합니다.
+
+**가드레일 — 어떤 경우에도 전체 스캔으로 폴백하지 않습니다.** 아래는 전부 중단하고 안내합니다:
+base branch 탐지 실패, `git diff` 실패(shallow clone의 `no merge base` 등), 대상 파일 0개,
+scope 필터링 후 0개, git 저장소가 아님. 대상이 500개를 넘으면 확인 후 진행합니다.
+
+**인자 규칙**
+
+- `full` / `backend` / `frontend` / `all`은 **예약어**입니다. 같은 이름의 브랜치를 리뷰하려면
+  `..`를 포함한 범위로 주세요: `/codebase-review backend..HEAD`.
+- `full`과 git revision(또는 `--working` / `--staged`)을 **함께 주면 오류**입니다. 모드가 상충합니다.
+- `--domain`은 **어떤 에이전트를 띄울지**만 정하고, `backend`/`frontend`는 **어떤 파일을 줄지**만
+  정합니다. 둘은 직교하므로 도메인을 좁혀도 대상 파일 범위가 넓어지지 않습니다.
+
+> **0.1.0에서 올라오는 경우**: `--full` → `full` (플래그가 아니라 위치 인자),
+> `--changed` → `--working`로 바뀌었습니다. `.codebase-review.jsonl` 이력과 since-last 모드는
+> 제거됐습니다. 구버전 플래그는 **자동 변환하지 않고 오류로 중단**합니다 — `--full`을 `full`로
+> 추측 변환하면 의도치 않은 전체 스캔이 실행되기 때문입니다.
 
 ### Persona Test (`/persona-test`)
 
@@ -40,6 +56,11 @@ base branch는 `origin/HEAD` → `origin/main` → `origin/master` → `main` �
 - Web UI, CLI, MCP, API, Plugin 인터페이스 지원
 - Bug / Friction / Gap / Delight 분류 체계
 - 프로젝트별 페르소나를 CLAUDE.md에서 설정 가능
+
+```
+/persona-test           # 인터페이스별 시나리오 실행
+/persona-test --cross   # 인터페이스 간 크로스 시나리오도 실행
+```
 
 ### Setup (`/setup`)
 
@@ -67,6 +88,8 @@ claude plugin install gritive
 
 별도 설정 없이 바로 사용 가능합니다. 프로젝트 CLAUDE.md에 아키텍처 규칙, 보안 원칙 등이 있으면 리뷰 에이전트가 자동으로 반영합니다.
 
+상세 설정 가이드: `skills/codebase-review/references/claude-md-setup.md`
+
 ### Persona Test
 
 프로젝트 CLAUDE.md에 다음을 추가하면 최적의 결과를 얻을 수 있습니다:
@@ -86,7 +109,8 @@ claude plugin install gritive
 ```
 gritive/
 ├── .claude-plugin/
-│   └── plugin.json
+│   ├── plugin.json          # 플러그인 메타데이터 + 버전
+│   └── marketplace.json     # 마켓플레이스 등록 정보 (버전 동기화 대상)
 ├── agents/
 │   ├── arch-reviewer.md
 │   ├── deadcode-reviewer.md
@@ -106,6 +130,9 @@ gritive/
 │   │       └── persona-templates.md
 │   └── setup/
 │       └── SKILL.md
+├── scripts/
+│   └── push.sh              # 버전 bump + push (git release alias)
+├── CLAUDE.md                # 에이전트 계약 · 개발 규칙
 └── README.md
 ```
 
@@ -117,7 +144,7 @@ gritive/
 | ------- | -------------------------------------------------------- |
 | `mode`  | `base-diff` (기본) 또는 `full`                           |
 | `scope` | `backend` / `frontend` / `all`                           |
-| `base`  | 리뷰 기준 revision 표현식 (`origin/main...HEAD` 등)      |
+| `base`  | `git diff`에 넘길 리뷰 기준 인자 (`origin/main...HEAD`, `HEAD`, `--cached`) |
 | `files` | 리뷰 대상 파일 목록 (`mode=base-diff`일 때만 전달)       |
 
 **범위 규칙**
