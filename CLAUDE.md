@@ -11,6 +11,16 @@
 - `scripts/push.sh` — 버전 bump + push (`git release` alias)
 - `.claude-plugin/` — `plugin.json` + `marketplace.json` (버전이 양쪽에 있으므로 항상 함께 bump)
 
+## Output Contract
+
+**모든 스킬은 대상 프로젝트에 산출물을 남기지 않는다.** 리포트·스크린샷·로그는 대화로 출력하거나
+세션 임시 디렉토리에 둔다. 파일로 남기는 것은 사용자가 명시적으로 요청할 때, **사용자가 지정한
+경로에만** 한다 — 경로를 받지 못했으면 물어본다. 스킬 이름을 딴 디렉토리를 대상 저장소 루트에
+만들지 않는다.
+
+유일한 예외는 테스트 행위 자체가 요구하는 편집이다 (persona-test의 `plugin` 인터페이스가 hook을
+트리거하려고 파일을 고치는 경우). 이 경우에도 테스트 후 원복한다.
+
 ## Agent Contract
 
 리뷰 에이전트 공통 규칙:

@@ -56,6 +56,8 @@ scope 필터링 후 0개, git 저장소가 아님. 대상이 500개를 넘으면
 - Web UI, CLI, MCP, API, Plugin 인터페이스 지원
 - Bug / Friction / Gap / Delight 분류 체계
 - 프로젝트별 페르소나를 CLAUDE.md에서 설정 가능
+- 스크린샷·리포트 등 산출물은 프로젝트에 남기지 않습니다 — 세션 임시 디렉토리를 쓰고,
+  파일 저장은 요청 시 지정한 경로에만 합니다
 
 ```
 /persona-test           # 인터페이스별 시나리오 실행
