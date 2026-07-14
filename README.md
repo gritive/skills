@@ -90,16 +90,6 @@ RFP(과업지시서) 한 장에서 프로젝트의 기획·기준 문서와 이�
 
 의존 대상이 없으면 해당 서브커맨드는 절차를 임의로 재구현하지 않고 중단합니다.
 
-### Setup (`/setup`)
-
-프로젝트를 분석하여 CLAUDE.md에 gritive 최적 설정을 자동 생성합니다.
-
-```
-/setup                # codebase-review + persona-test 전체 설정
-/setup --review       # codebase-review 설정만
-/setup --persona      # persona-test 설정만
-```
-
 ## Installation
 
 ```bash
@@ -110,11 +100,13 @@ claude plugin marketplace add gritive/skills
 claude plugin install gritive
 ```
 
-## Project Setup
+## 프로젝트별 설정 (선택)
+
+별도 설정 없이 바로 쓸 수 있습니다. 아래는 결과를 더 좋게 만드는 선택 사항입니다.
 
 ### Codebase Review
 
-별도 설정 없이 바로 사용 가능합니다. 프로젝트 CLAUDE.md에 아키텍처 규칙, 보안 원칙 등이 있으면 리뷰 에이전트가 자동으로 반영합니다.
+프로젝트 CLAUDE.md에 아키텍처 규칙, 보안 원칙 등이 있으면 리뷰 에이전트가 자동으로 반영합니다.
 
 상세 설정 가이드: `skills/codebase-review/references/claude-md-setup.md`
 
@@ -156,18 +148,16 @@ gritive/
 │   │   └── references/
 │   │       ├── claude-md-setup.md
 │   │       └── persona-templates.md
-│   ├── project/
-│   │   ├── SKILL.md          # 서브커맨드 라우터
-│   │   ├── setup.md          # RFP → PRD · design-guide · CLAUDE.md · README
-│   │   ├── prd-to-issue.md   # PRD → 의존성 순서 GitHub 이슈
-│   │   ├── sync.md           # 템플릿 backfill (additive-only)
-│   │   ├── gap.md            # 문서 대비 실제 구현 gap 분석
-│   │   ├── build.md          # 이슈 백로그 자율 burndown
-│   │   └── templates/
-│   │       ├── CLAUDE.md.template
-│   │       └── README.md.template
-│   └── setup/
-│       └── SKILL.md
+│   └── project/
+│       ├── SKILL.md          # 서브커맨드 라우터
+│       ├── setup.md          # RFP → PRD · design-guide · CLAUDE.md · README
+│       ├── prd-to-issue.md   # PRD → 의존성 순서 GitHub 이슈
+│       ├── sync.md           # 템플릿 backfill (additive-only)
+│       ├── gap.md            # 문서 대비 실제 구현 gap 분석
+│       ├── build.md          # 이슈 백로그 자율 burndown
+│       └── templates/
+│           ├── CLAUDE.md.template
+│           └── README.md.template
 ├── scripts/
 │   └── push.sh              # 버전 bump + push (git release alias)
 ├── CLAUDE.md                # 에이전트 계약 · 개발 규칙

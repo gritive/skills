@@ -38,7 +38,7 @@ description: "Use when the user asks for a codebase review, code health check, a
 - 예시: CLAUDE.md에 특정 프레임워크 패턴이 있으면 → 해당 도메인 에이전트가 패턴 준수 여부 점검
 
 > 프로젝트 CLAUDE.md 설정 가이드: `references/claude-md-setup.md` 참조.
-> 자동 설정은 `/setup --review` 으로 실행.
+> 설정은 선택 사항이다 — CLAUDE.md에 규칙이 없어도 리뷰는 동작한다.
 
 ## Workflow
 

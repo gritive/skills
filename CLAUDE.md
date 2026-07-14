@@ -8,7 +8,6 @@
 - `skills/codebase-review/` — 에이전트 오케스트레이션 스킬
 - `skills/persona-test/` — 페르소나 기반 서비스 테스트 스킬
 - `skills/project/` — RFP → PRD·이슈 부트스트랩 + 백로그 자율 처리 (5개 서브커맨드 라우터)
-- `skills/setup/` — 프로젝트 CLAUDE.md 자동 설정 스킬
 - `scripts/push.sh` — 버전 bump + push (`git release` alias)
 - `.claude-plugin/` — `plugin.json` + `marketplace.json` (버전이 양쪽에 있으므로 항상 함께 bump)
 
@@ -23,11 +22,10 @@
 만들지 않는다.
 
 '산출물'은 리뷰/테스트의 **부산물**이다. 사용자가 요청한 코드 수정과 그에 딸린 테스트는 작업
-결과이지 산출물이 아니므로 이 규칙의 대상이 아니다. `setup`은 대상 프로젝트의 CLAUDE.md를 쓰는
-것이 본업이므로 역시 대상이 아니다. persona-test의 `plugin` 인터페이스가 hook을 띄우려고 파일을
-고치는 것은 테스트 조작이므로 허용하되 원복한다.
+결과이지 산출물이 아니므로 이 규칙의 대상이 아니다. persona-test의 `plugin` 인터페이스가 hook을
+띄우려고 파일을 고치는 것은 테스트 조작이므로 허용하되 원복한다.
 
-`project`도 대상이 아니다 — PRD·design-guide·CLAUDE.md·README·이슈·PR을 만드는 것이 이 스킬의
+`project`는 대상이 아니다 — PRD·design-guide·CLAUDE.md·README·이슈·PR을 만드는 것이 이 스킬의
 **본업**이다. 다만 `project gap`의 분석 리포트는 부산물이므로, 파일로 남기려면 사용자에게 먼저
 확인한다(`gap.md`의 완료 보고 참조).
 
