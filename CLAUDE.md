@@ -72,7 +72,14 @@ skills / agents / hooks 로만 컨텍스트를 기여하고, `plugin.json`에는
 
 에이전트 추가/수정 시:
 - `agents/` 디렉토리에 `.md` 파일 생성
-- frontmatter에 `name`, `description`, `model`, `tools` 포함
+- frontmatter에 `name`, `description`, `effort`, `tools` 포함. `tools`는 **콤마 구분 문자열**이다
+  (`tools: Read, Grep, Glob, Bash`). YAML 배열은 `.md` 에이전트의 문서화된 형식이 아니다
+- **`model`은 명시하지 않는다** — 기본값 `inherit`으로 세션 모델을 상속한다. `model: sonnet`으로
+  고정하면 Opus 세션에서도 전원 Sonnet으로 강등된다. 리뷰 깊이는 모델 등급이 아니라 `effort`로
+  차등한다 (`security`/`arch` = `high`, 나머지 = `medium`). 비용·품질은 사용자가 세션 모델로 제어한다
+- 플러그인 에이전트는 `hooks` / `mcpServers` / `permissionMode`를 **지원하지 않는다**
+  ([plugins-reference](https://code.claude.com/docs/en/plugins-reference#agents)). 읽기 전용 강제를
+  hook으로 거는 방법은 쓸 수 없으므로, "파일 쓰기 금지"는 프롬프트 규약으로만 유지된다
 - **스킬에서 호출할 때는 `subagent_type="gritive:<name>"`으로 플러그인 이름을 접두사로 붙인다.**
   접두사 없이 `arch-reviewer`로 부르면 `Agent type not found`로 실패한다
 - 에이전트 정의를 고쳐도 **실행 중인 세션에는 반영되지 않는다.** 세션은 설치된 사본

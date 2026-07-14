@@ -15,9 +15,9 @@
 | Architecture | `arch-reviewer`     | 계층 위반, 순환 의존, 관심사 분리, 모듈 구조  |
 | Refactoring  | `refactor-reviewer` | 코드 중복, 복잡도, 코드 스멜, 네이밍          |
 | Dead Code    | `deadcode-reviewer` | 미사용 함수, 고아 파일, 미사용 의존성         |
-| Performance  | `perf-reviewer`     | N+1 쿼리, 메모리 릭, 번들 크기, 캐싱          |
-| Security     | `security-reviewer` | 인증/인가, 입력 검증, 주입 공격, OWASP Top 10 |
-| Frontend     | `frontend-reviewer` | 타입 안전성, 컴포넌트 품질, a11y, 상태 관리   |
+| Performance  | `perf-reviewer`     | N+1 쿼리, 메모리 릭, Core Web Vitals, 번들 크기 |
+| Security     | `security-reviewer` | 인증/인가, 입력 검증, 주입 공격, 공급망, OWASP Top 10:2025 |
+| Frontend     | `frontend-reviewer` | 타입 안전성, 컴포넌트 품질, a11y(WCAG 2.2), 상태 관리 |
 
 ```
 /codebase-review                          # base branch 대비 변경분, 6개 도메인 (기본)
