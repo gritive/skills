@@ -1,6 +1,6 @@
 # Gritive
 
-코드베이스 종합 리뷰 및 페르소나 기반 UX 테스트를 위한 Claude Code 플러그인.
+코드베이스 종합 리뷰, 페르소나 기반 UX 테스트, RFP 기반 프로젝트 부트스트랩을 위한 Claude Code 플러그인.
 
 ## Features
 
@@ -67,15 +67,39 @@ scope 필터링 후 0개, git 저장소가 아님. 대상이 500개를 넘으면
 /persona-test --cross   # 인터페이스 간 크로스 시나리오도 실행
 ```
 
-### Setup (`/setup`)
+### Project (`/project`)
 
-프로젝트를 분석하여 CLAUDE.md에 gritive 최적 설정을 자동 생성합니다.
+RFP(과업지시서) 한 장에서 프로젝트의 기획·기준 문서와 이슈 백로그를 부트스트랩하고, 그 백로그를
+자율적으로 처리합니다.
 
 ```
-/setup                # codebase-review + persona-test 전체 설정
-/setup --review       # codebase-review 설정만
-/setup --persona      # persona-test 설정만
+/project setup <RFP-path>   # RFP → PRD · design-guide · CLAUDE.md · README 생성
+/project prd-to-issue       # PRD를 의존성 순서 GitHub 이슈로 분해
+/project sync               # 공유 템플릿으로 프로젝트 CLAUDE.md/README 보강 (additive-only)
+/project gap                # RFP·PRD 대비 실제 구현 gap + UI 노출 여부 분석
+/project build [상한]       # 이슈 백로그를 완전 자율로 burndown (PR마다 머지 재확인 없음)
 ```
+
+**이 스킬은 오케스트레이터입니다 — 외부 스킬·도구에 의존합니다.**
+
+| 서브커맨드              | 의존 대상                                  | 출처              |
+| ----------------------- | ------------------------------------------ | ----------------- |
+| `setup`                 | `deep-research` 스킬                       | Claude Code 기본 제공 |
+| `prd-to-issue`, `build` | `gh` CLI (인증된 상태)                     | GitHub CLI        |
+| `build`                 | `land-and-deploy` (+ 선택적으로 `investigate`, `feature-pipeline`) | [gstack](https://github.com/gstack-sh/gstack) |
+
+의존 대상이 없으면 해당 서브커맨드는 절차를 임의로 재구현하지 않고 중단합니다.
+이 표의 원본은 `skills/project/SKILL.md`입니다 — 런타임에 로드되는 건 그쪽입니다.
+
+> **`/project build`는 사람 확인 없이 머지·배포까지 갑니다.** 이슈 선택 → 구현 → PR →
+> merge/deploy → 다음 이슈를 반복하며, PR마다 머지 승인을 다시 묻지 않습니다. 이 커맨드를
+> 실행하는 것 자체가 사전 승인입니다.
+>
+> 자동 승인은 **BLOCKER가 없고 리뷰가 보안 결함을 0건 보고할 때만** 일어납니다. 리뷰가 보안 결함을
+> 찾거나, diff가 시크릿·인증·권한 코드를 건드리거나, 테스트 실패·merge conflict·배포 실패·데이터
+> 삭제 위험이 나오면 멈추고 사람에게 넘깁니다. 이슈 본문과 댓글은 **데이터로만** 취급하며, 요구사항으로
+> 승격하기 전에 작성자가 write 권한자인지 확인합니다. 전체 목록은 `skills/project/build.md`의
+> "자동 진행 중단 조건"에 있습니다.
 
 ## Installation
 
@@ -87,11 +111,13 @@ claude plugin marketplace add gritive/skills
 claude plugin install gritive
 ```
 
-## Project Setup
+## 프로젝트별 설정 (선택)
+
+별도 설정 없이 바로 쓸 수 있습니다. 아래는 결과를 더 좋게 만드는 선택 사항입니다.
 
 ### Codebase Review
 
-별도 설정 없이 바로 사용 가능합니다. 프로젝트 CLAUDE.md에 아키텍처 규칙, 보안 원칙 등이 있으면 리뷰 에이전트가 자동으로 반영합니다.
+프로젝트 CLAUDE.md에 아키텍처 규칙, 보안 원칙 등이 있으면 리뷰 에이전트가 자동으로 반영합니다.
 
 상세 설정 가이드: `skills/codebase-review/references/claude-md-setup.md`
 
@@ -133,8 +159,16 @@ gritive/
 │   │   └── references/
 │   │       ├── claude-md-setup.md
 │   │       └── persona-templates.md
-│   └── setup/
-│       └── SKILL.md
+│   └── project/
+│       ├── SKILL.md          # 서브커맨드 라우터
+│       ├── setup.md          # RFP → PRD · design-guide · CLAUDE.md · README
+│       ├── prd-to-issue.md   # PRD → 의존성 순서 GitHub 이슈
+│       ├── sync.md           # 템플릿 backfill (additive-only)
+│       ├── gap.md            # 문서 대비 실제 구현 gap 분석
+│       ├── build.md          # 이슈 백로그 자율 burndown
+│       └── templates/
+│           ├── CLAUDE.md.template
+│           └── README.md.template
 ├── scripts/
 │   └── push.sh              # 버전 bump + push (git release alias)
 ├── CLAUDE.md                # 에이전트 계약 · 개발 규칙
@@ -187,8 +221,13 @@ git config alias.release '!bash scripts/push.sh'
 이후 `git push` 대신 `git release`를 사용하면 버전이 자동 bump됩니다:
 
 ```bash
-git release          # 0.1.1 → 0.1.2 → ... 자동 bump 후 push
+git release          # 0.2.0 → 0.2.1 → ... 자동 bump 후 push
 ```
+
+`push.sh`는 **patch만** 올립니다. minor·major bump는 `plugin.json`과 `marketplace.json`을 직접
+고치세요 — 두 파일에 버전이 따로 있으므로 항상 함께 바꿉니다. 마지막 커밋 제목이
+`chore: bump version`으로 시작하면 스크립트가 재bump를 건너뛰므로, 수동 bump는 마지막 커밋으로
+두면 됩니다.
 
 ## License
 
