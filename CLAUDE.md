@@ -1,11 +1,13 @@
 # Gritive Plugin
 
-코드베이스 종합 리뷰, 페르소나 기반 UX 테스트, RFP 기반 프로젝트 부트스트랩 플러그인.
+코드베이스 종합 리뷰, 클린까지 반복하는 리뷰 루프, 페르소나 기반 UX 테스트, RFP 기반 프로젝트
+부트스트랩 플러그인.
 
 ## Structure
 
 - `agents/` — 6개 리뷰 에이전트 (arch, refactor, deadcode, perf, security, frontend)
 - `skills/codebase-review/` — 에이전트 오케스트레이션 스킬
+- `skills/review-forever/` — 리뷰 스킬을 감싸 **실행 큐가 빌 때까지** 반복하는 루프 (자체 리뷰 로직 없음)
 - `skills/persona-test/` — 페르소나 기반 서비스 테스트 스킬
 - `skills/project/` — RFP → PRD·이슈 부트스트랩 + 백로그 자율 처리 (5개 서브커맨드 라우터)
 - `scripts/push.sh` — 버전 bump + push (`git release` alias)
@@ -13,6 +15,25 @@
 
 `skills/project/`는 `~/.claude/skills/prototype`(user space)에서 가져온 사본이다. 원본은 그대로
 남아 있으므로 **양쪽이 갈라진다.** 한쪽만 고치고 동기화됐다고 가정하지 마라.
+
+`skills/review-forever/`는 `~/.claude/skills/review-forever`(user space 스킬. gstack 트리 안에 있지
+않다)에서 가져왔지만 **사본이 아니다.** codex/agy 폴백을 걷어냈고, 원본에 없던 수렴 안전장치(패스
+상한, 실행 큐 기반 정체 감지, 발견 동일성 키, "중단 ≠ 발견 0건" 구분)를 넣었다. 원본과 동기화할
+대상이 아니다.
+
+**모든 판정은 원시 발견 수가 아니라 실행 큐로 잰다** — `발견 − 범위 밖 레거시 − 기각한 오탐 − 보류`.
+감싼 리뷰 스킬은 패스 간 기억이 없어서 고치지 않기로 한 것을 매 패스 다시 보고하므로, 원시 발견 수로
+완료·정체를 재면 루프가 지시를 완벽히 따르고도 영영 끝나지 않는다. 이 스킬을 고칠 때 이 불변식을
+깨지 마라 — 리뷰 3회에 걸쳐 이 자리에서만 CRITICAL이 네 번 나왔다.
+
+**이름이 원본과 충돌한다 — 접두사가 유일한 방어선이다.** 이 스킬은 `gritive:review-forever`이고,
+접두사 없는 `/review-forever`는 **원본**(안전장치 없음)으로 간다. `prototype`을 `project`로 개명해
+충돌을 피했던 것과 달리 여기서는 이름을 유지했으므로, **문서·안내·자기 참조에서 접두사를 절대
+빠뜨리면 안 된다.** 빠뜨리면 사용자는 우리가 약속한 안전장치가 없는 루프를 돌리게 된다.
+
+**기본 리뷰 스킬은 gstack의 `review`다.** personal 스킬이 bundled를 덮어쓰므로 `review`는 Claude Code
+내장 review가 아니라 gstack 것으로 해석된다. 이는 의도된 선택이다 — 착각이 아니라 결정이므로
+"내장 review로 고쳐야 한다"고 되돌리지 마라.
 
 ## Output Contract
 
@@ -24,6 +45,11 @@
 '산출물'은 리뷰/테스트의 **부산물**이다. 사용자가 요청한 코드 수정과 그에 딸린 테스트는 작업
 결과이지 산출물이 아니므로 이 규칙의 대상이 아니다. persona-test의 `plugin` 인터페이스가 hook을
 띄우려고 파일을 고치는 것은 테스트 조작이므로 허용하되 원복한다.
+
+**`review-forever`는 코드를 고친다.** 이것이 그 스킬의 본업이므로 위 규칙과 충돌하지 않는다 —
+수정은 결과물이지 부산물이 아니다. 다만 패스별 리포트·로그는 부산물이므로 대화로만 출력하고,
+`review-forever/` 같은 디렉토리를 대상 저장소에 만들지 않는다. 리뷰 에이전트가 읽기 전용인 것과
+루프가 수정하는 것은 층이 다르다: **에이전트가 찾고, 루프가 고친다.**
 
 `project`는 대상이 아니다 — PRD·design-guide·IA·research 노트(`docs/research/*.md`)·CLAUDE.md·README·
 이슈·PR을 만드는 것이 이 스킬의 **본업**이다. PRD가 인용하는 근거 문서이므로 research 노트도 산출물이
@@ -37,7 +63,7 @@ skills / agents / hooks 로만 컨텍스트를 기여하고, `plugin.json`에는
 ([공식 문서](https://code.claude.com/docs/en/plugins-reference#file-locations-reference)).
 
 즉 여기 쓴 규칙은 **이 저장소를 개발할 때만** 유효하다. 런타임에 실제로 강제하려면 규칙을 각
-`skills/*/SKILL.md`(또는 `agents/*.md`)에 **복제해야 한다.** 위 Output Contract도 그래서 두 스킬
+`skills/*/SKILL.md`(또는 `agents/*.md`)에 **복제해야 한다.** 위 Output Contract도 그래서 세 스킬
 문서에 각각 들어가 있다. 새 공통 규칙을 만들 때는 반드시 배포되는 문서에도 넣어라 — 여기에만
 쓰면 아무 효력이 없다.
 
