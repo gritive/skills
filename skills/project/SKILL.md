@@ -41,16 +41,17 @@ RFP 한 장에서 프로젝트의 기획 문서·기준 문서·이슈를 부트
 
 | 서브커맨드 | 의존 대상 | 출처 |
 |---|---|---|
-| `setup` | `deep-research` 스킬 | 별도 설치 필요 (Claude Code 기본 제공이 **아니다**) |
+| `setup` | `deep-research` 스킬 | Claude Code 기본 제공 |
 | `prd-to-issue`, `build` | `gh` CLI (인증된 상태) | GitHub CLI |
 | `build` | `land-and-deploy` 스킬 | [gstack](https://github.com/gstack-sh/gstack) |
 | `build` | `investigate`, `feature-pipeline` (구현 위임 시, 선택) | gstack |
 
+`setup`이 쓰는 `deep-research`는 **Claude Code 기본 제공 스킬**이라 추가 설치가 필요 없다. 같은 이름의
+서드파티 스킬이 깔려 있을 수 있으나, 이 스킬이 부르는 건 기본 제공 쪽이다.
+
 **의존 대상이 없으면 그 서브커맨드를 흉내 내지 말고 멈춘다.** 예를 들어 `build`가 `land-and-deploy`를
 찾지 못하면, 머지·배포 절차를 임의로 재구현하지 말고 "gstack의 `land-and-deploy`가 필요하다"고
 알리고 중단한다. 자율 머지 루프에서 게이트를 자체 구현하는 것은 위험하다.
-
-`setup`은 `deep-research`가 없으면 연구 루프를 자체 구현하지 말고 사용자에게 설치를 안내하고 멈춘다.
 
 `gap`은 Agent 툴만 쓰므로 추가 의존이 없다. `sync`는 이 스킬 디렉터리의 `templates/`만 쓴다.
 

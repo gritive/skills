@@ -84,7 +84,7 @@ RFP(과업지시서) 한 장에서 프로젝트의 기획·기준 문서와 이�
 
 | 서브커맨드              | 의존 대상                                  | 출처              |
 | ----------------------- | ------------------------------------------ | ----------------- |
-| `setup`                 | `deep-research` 스킬                       | 별도 설치 필요 (기본 제공 아님) |
+| `setup`                 | `deep-research` 스킬                       | Claude Code 기본 제공 |
 | `prd-to-issue`, `build` | `gh` CLI (인증된 상태)                     | GitHub CLI        |
 | `build`                 | `land-and-deploy` (+ 선택적으로 `investigate`, `feature-pipeline`) | [gstack](https://github.com/gstack-sh/gstack) |
 

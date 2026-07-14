@@ -12,7 +12,7 @@
 - RFP를 Read로 읽고 도메인·목표·주요 요구·제약을 파악한다.
 
 ### 2. deep-research #1 — 도메인/시장/베스트프랙티스
-- `deep-research` 스킬을 호출한다. research question 예: "{도메인} 서비스의 표준 기능 범위, 경쟁 제품, 데이터 모델 관례, 운영 워크플로우 베스트프랙티스는?"
+- **Claude Code 기본 제공 `deep-research` 스킬**을 호출한다(추가 설치 불필요). research question 예: "{도메인} 서비스의 표준 기능 범위, 경쟁 제품, 데이터 모델 관례, 운영 워크플로우 베스트프랙티스는?"
 - 결과를 `docs/research/domain-research.md`로 저장(디렉터리 없으면 생성).
 
 ### 3. 기술스택·툴체인 확정
