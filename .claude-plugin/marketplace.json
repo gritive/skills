@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Comprehensive codebase review with 6 parallel agents + persona-based UX testing + RFP-to-project bootstrapping with autonomous issue backlog burndown.",
-    "version": "0.2.0"
+    "version": "0.2.1"
   },
   "plugins": [
     {
