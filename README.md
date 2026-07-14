@@ -90,6 +90,12 @@ RFP(과업지시서) 한 장에서 프로젝트의 기획·기준 문서와 이�
 
 의존 대상이 없으면 해당 서브커맨드는 절차를 임의로 재구현하지 않고 중단합니다.
 
+> **`/project build`는 사람 확인 없이 머지·배포까지 갑니다.** 이슈 선택 → 구현 → PR →
+> merge/deploy → 다음 이슈를 반복하며, PR마다 머지 승인을 다시 묻지 않습니다. 이 커맨드를
+> 실행하는 것 자체가 사전 승인입니다. 테스트 실패, merge conflict, 시크릿 변경 필요, 결제·인증·
+> 보안 정책 영향, 데이터 삭제 위험 등이 나오면 멈추고 보고합니다 — 그 목록은
+> `skills/project/build.md`의 "자동 진행 중단 조건"에 있습니다.
+
 ## Installation
 
 ```bash
@@ -210,8 +216,13 @@ git config alias.release '!bash scripts/push.sh'
 이후 `git push` 대신 `git release`를 사용하면 버전이 자동 bump됩니다:
 
 ```bash
-git release          # 0.1.1 → 0.1.2 → ... 자동 bump 후 push
+git release          # 0.2.0 → 0.2.1 → ... 자동 bump 후 push
 ```
+
+`push.sh`는 **patch만** 올립니다. minor·major bump는 `plugin.json`과 `marketplace.json`을 직접
+고치세요 — 두 파일에 버전이 따로 있으므로 항상 함께 바꿉니다. 마지막 커밋 제목이
+`chore: bump version`으로 시작하면 스크립트가 재bump를 건너뛰므로, 수동 bump는 마지막 커밋으로
+두면 됩니다.
 
 ## License
 
