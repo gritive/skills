@@ -1,0 +1,23 @@
+# {{PROJECT_TITLE}}
+
+{{RFP_URL}} <!-- setup: 과업/RFP 원문 URL이 있으면 -->
+
+{{PROJECT_INTRO}} 과업 배경과 요구사항 원문은 [docs/RFP.md](docs/RFP.md), 제품 요구사항은 [docs/prd.md](docs/prd.md) 참고.
+
+## 구성
+
+{{PROJECT_STRUCTURE}} <!-- setup: 주요 디렉터리 한 줄 설명 -->
+
+## 기술스택
+
+{{TECH_STACK}} <!-- setup: RFP/PRD가 정한 실제 스택. 예시 프로젝트 값 하드코딩 금지 -->
+
+## 시작하기
+
+{{GETTING_STARTED}} <!-- setup: install → 환경설정 → 마이그레이션/시드 → dev 실행 순서 -->
+
+## 문서
+
+{{DOC_LIST}} <!-- setup: 존재하는 문서만 (RFP/PRD/IA/design-guide) 링크와 한 줄 용도 -->
+
+엔지니어링 원칙(구현 기준, Clean Architecture, God Object 방지, 개발 원칙, 도메인 용어)은 [CLAUDE.md](CLAUDE.md)에서 관리한다.

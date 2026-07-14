@@ -1,6 +1,6 @@
 # Gritive
 
-코드베이스 종합 리뷰 및 페르소나 기반 UX 테스트를 위한 Claude Code 플러그인.
+코드베이스 종합 리뷰, 페르소나 기반 UX 테스트, RFP 기반 프로젝트 부트스트랩을 위한 Claude Code 플러그인.
 
 ## Features
 
@@ -66,6 +66,29 @@ scope 필터링 후 0개, git 저장소가 아님. 대상이 500개를 넘으면
 /persona-test           # 인터페이스별 시나리오 실행
 /persona-test --cross   # 인터페이스 간 크로스 시나리오도 실행
 ```
+
+### Project (`/project`)
+
+RFP(과업지시서) 한 장에서 프로젝트의 기획·기준 문서와 이슈 백로그를 부트스트랩하고, 그 백로그를
+자율적으로 처리합니다.
+
+```
+/project setup <RFP-path>   # RFP → PRD · design-guide · CLAUDE.md · README 생성
+/project prd-to-issue       # PRD를 의존성 순서 GitHub 이슈로 분해
+/project sync               # 공유 템플릿으로 프로젝트 CLAUDE.md/README 보강 (additive-only)
+/project gap                # RFP·PRD 대비 실제 구현 gap + UI 노출 여부 분석
+/project build [상한]       # 이슈 백로그를 완전 자율로 burndown (PR마다 머지 재확인 없음)
+```
+
+**이 스킬은 오케스트레이터입니다 — 외부 스킬·도구에 의존합니다.**
+
+| 서브커맨드              | 의존 대상                                  | 출처              |
+| ----------------------- | ------------------------------------------ | ----------------- |
+| `setup`                 | `deep-research` 스킬                       | Claude Code 기본  |
+| `prd-to-issue`, `build` | `gh` CLI (인증된 상태)                     | GitHub CLI        |
+| `build`                 | `land-and-deploy` (+ 선택적으로 `investigate`, `feature-pipeline`) | [gstack](https://github.com/gstack-sh/gstack) |
+
+의존 대상이 없으면 해당 서브커맨드는 절차를 임의로 재구현하지 않고 중단합니다.
 
 ### Setup (`/setup`)
 
@@ -133,6 +156,16 @@ gritive/
 │   │   └── references/
 │   │       ├── claude-md-setup.md
 │   │       └── persona-templates.md
+│   ├── project/
+│   │   ├── SKILL.md          # 서브커맨드 라우터
+│   │   ├── setup.md          # RFP → PRD · design-guide · CLAUDE.md · README
+│   │   ├── prd-to-issue.md   # PRD → 의존성 순서 GitHub 이슈
+│   │   ├── sync.md           # 템플릿 backfill (additive-only)
+│   │   ├── gap.md            # 문서 대비 실제 구현 gap 분석
+│   │   ├── build.md          # 이슈 백로그 자율 burndown
+│   │   └── templates/
+│   │       ├── CLAUDE.md.template
+│   │       └── README.md.template
 │   └── setup/
 │       └── SKILL.md
 ├── scripts/
