@@ -25,8 +25,9 @@
 결과이지 산출물이 아니므로 이 규칙의 대상이 아니다. persona-test의 `plugin` 인터페이스가 hook을
 띄우려고 파일을 고치는 것은 테스트 조작이므로 허용하되 원복한다.
 
-`project`는 대상이 아니다 — PRD·design-guide·CLAUDE.md·README·이슈·PR을 만드는 것이 이 스킬의
-**본업**이다. 다만 `project gap`의 분석 리포트는 부산물이므로, 파일로 남기려면 사용자에게 먼저
+`project`는 대상이 아니다 — PRD·design-guide·IA·research 노트(`docs/research/*.md`)·CLAUDE.md·README·
+이슈·PR을 만드는 것이 이 스킬의 **본업**이다. PRD가 인용하는 근거 문서이므로 research 노트도 산출물이
+아니라 결과물이다. 다만 `project gap`의 분석 리포트는 부산물이므로, 파일로 남기려면 사용자에게 먼저
 확인한다(`gap.md`의 완료 보고 참조).
 
 ### 이 파일은 배포되지 않는다

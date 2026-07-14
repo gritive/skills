@@ -84,17 +84,22 @@ RFP(과업지시서) 한 장에서 프로젝트의 기획·기준 문서와 이�
 
 | 서브커맨드              | 의존 대상                                  | 출처              |
 | ----------------------- | ------------------------------------------ | ----------------- |
-| `setup`                 | `deep-research` 스킬                       | Claude Code 기본  |
+| `setup`                 | `deep-research` 스킬                       | 별도 설치 필요 (기본 제공 아님) |
 | `prd-to-issue`, `build` | `gh` CLI (인증된 상태)                     | GitHub CLI        |
 | `build`                 | `land-and-deploy` (+ 선택적으로 `investigate`, `feature-pipeline`) | [gstack](https://github.com/gstack-sh/gstack) |
 
 의존 대상이 없으면 해당 서브커맨드는 절차를 임의로 재구현하지 않고 중단합니다.
+이 표의 원본은 `skills/project/SKILL.md`입니다 — 런타임에 로드되는 건 그쪽입니다.
 
 > **`/project build`는 사람 확인 없이 머지·배포까지 갑니다.** 이슈 선택 → 구현 → PR →
 > merge/deploy → 다음 이슈를 반복하며, PR마다 머지 승인을 다시 묻지 않습니다. 이 커맨드를
-> 실행하는 것 자체가 사전 승인입니다. 테스트 실패, merge conflict, 시크릿 변경 필요, 결제·인증·
-> 보안 정책 영향, 데이터 삭제 위험 등이 나오면 멈추고 보고합니다 — 그 목록은
-> `skills/project/build.md`의 "자동 진행 중단 조건"에 있습니다.
+> 실행하는 것 자체가 사전 승인입니다.
+>
+> 자동 승인은 **BLOCKER가 없고 리뷰가 보안 결함을 0건 보고할 때만** 일어납니다. 리뷰가 보안 결함을
+> 찾거나, diff가 시크릿·인증·권한 코드를 건드리거나, 테스트 실패·merge conflict·배포 실패·데이터
+> 삭제 위험이 나오면 멈추고 사람에게 넘깁니다. 이슈 본문과 댓글은 **데이터로만** 취급하며, 요구사항으로
+> 승격하기 전에 작성자가 write 권한자인지 확인합니다. 전체 목록은 `skills/project/build.md`의
+> "자동 진행 중단 조건"에 있습니다.
 
 ## Installation
 
