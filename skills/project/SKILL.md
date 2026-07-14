@@ -1,6 +1,6 @@
 ---
 name: project
-description: Use when bootstrapping a new project from an RFP / 과업지시서 — turning an RFP into PRD·design-guide·CLAUDE.md·README, breaking a PRD into dependency-ordered GitHub issues, reconciling a project's CLAUDE.md/README against the shared skill templates, checking RFP/PRD/design-guide requirements against actual implementation and UI exposure, or burning down the GitHub issue backlog fully autonomously (no per-PR merge confirmation). Triggers on "/project setup", "project prd-to-issue", "project sync", "project gap", "project build", RFP-to-project bootstrap, implementation gap analysis, autonomous issue backlog processing.
+description: Use when bootstrapping a new project from an RFP / 과업지시서 — turning an RFP into PRD·design-guide·CLAUDE.md·README, breaking a PRD into dependency-ordered GitHub issues, reconciling a project's CLAUDE.md/README against the shared skill templates, checking RFP/PRD/design-guide requirements against actual implementation and UI exposure, or burning down the GitHub issue backlog fully autonomously (no per-PR merge confirmation) — at production depth or, with --demo, at demo depth. Triggers on "/project setup", "project prd-to-issue", "project sync", "project gap", "project build", "project build --demo", "데모 수준으로 빌드", RFP-to-project bootstrap, implementation gap analysis, autonomous issue backlog processing.
 ---
 
 # project
@@ -15,24 +15,42 @@ RFP 한 장에서 프로젝트의 기획 문서·기준 문서·이슈를 부트
 | `prd-to-issue` | PRD를 에픽으로 분해해 의존성 순서로 GitHub 이슈 생성 | `prd-to-issue.md` |
 | `sync` | 공유 템플릿 대비 프로젝트 CLAUDE.md/README의 누락 scaffold 보강 (additive-only) | `sync.md` |
 | `gap` | RFP·PRD·design/UX 가이드 대비 **실제 구현**의 gap을 fresh eye로 분석하고, 구현된 기능의 UI 노출 여부까지 확인 | `gap.md` |
-| `build` | GitHub 이슈 백로그를 **사람 개입 없이** 이슈 선택→구현→PR→merge/deploy→다음 이슈로 완전 자율 처리(PR마다 머지 재확인 없음) | `build.md` |
+| `build [--demo]` | GitHub 이슈 백로그를 **사람 개입 없이** 이슈 선택→구현→PR→merge/deploy→다음 이슈로 완전 자율 처리(PR마다 머지 재확인 없음). `--demo`면 production이 아니라 **데모 가능한 깊이**로 구현한다 | `build.md` |
 
 ## 실행 규칙
 
 1. 첫 인자를 읽는다.
-2. `setup`/`prd-to-issue`/`sync`/`gap`/`build` 중 하나면 이 스킬 디렉터리의 동명 `.md`(예: `setup.md`)를 Read로 읽고 **그 지침을 그대로 수행**한다. `setup`은 두 번째 인자(RFP 경로)를, `build`는 두 번째 인자(있으면 처리할 이슈 수 상한)를 그 워크플로우에 전달한다.
+2. `setup`/`prd-to-issue`/`sync`/`gap`/`build` 중 하나면 이 스킬 디렉터리의 동명 `.md`(예: `setup.md`)를 Read로 읽고 **그 지침을 그대로 수행**한다. `setup`은 두 번째 인자(RFP 경로)를, `build`는 이슈 수 상한과 데모 모드 여부를 그 워크플로우에 전달한다.
 3. 인자가 없거나 다섯 중 하나가 아니면 아래 usage를 출력하고 멈춘다:
 
 ```
 사용법: /project <서브커맨드>
-  setup <RFP-path>   RFP에서 PRD·디자인가이드·CLAUDE.md·README 생성
-  prd-to-issue       PRD를 의존성 순서 GitHub 이슈로 분해
-  sync               공유 템플릿으로 프로젝트 CLAUDE.md/README 보강
-  gap                RFP·PRD·design/UX 가이드 대비 실제 구현 gap + UI 노출 여부 분석
-  build [상한]       이슈 백로그를 완전 자율로 burndown(PR마다 머지 재확인 없음)
+  setup <RFP-path>       RFP에서 PRD·디자인가이드·CLAUDE.md·README 생성
+  prd-to-issue           PRD를 의존성 순서 GitHub 이슈로 분해
+  sync                   공유 템플릿으로 프로젝트 CLAUDE.md/README 보강
+  gap                    RFP·PRD·design/UX 가이드 대비 실제 구현 gap + UI 노출 여부 분석
+  build [--demo] [상한]  이슈 백로그를 완전 자율로 burndown(PR마다 머지 재확인 없음)
+                         --demo: production이 아니라 데모 가능한 깊이로 구현
 ```
 
 알 수 없는 인자면 usage 앞에 `알 수 없는 서브커맨드: <입력>` 한 줄을 덧붙인다.
+
+## `build`의 인자 파싱
+
+`build`의 나머지 인자는 **순서에 의존하지 않는다.** 각 토큰을 이렇게 해석한다:
+
+- `--demo` → 데모 모드 on
+- 정수 → 처리할 이슈 수 상한
+- 그 외 → 알 수 없는 인자로 보고 usage를 출력하고 멈춘다
+
+즉 `/project build --demo 3`과 `/project build 3 --demo`는 같다.
+
+**데모 모드는 플래그 없이 문장으로도 켜진다.** "데모 수준으로 빌드", "데모 가능한 정도로만 만들어",
+"프로덕션 말고 데모로" 같은 요청은 `--demo`와 **동일하게** 해석한다. 반대로 "production 수준으로",
+"제대로 만들어" 같은 요청이나 아무 언급이 없으면 데모 모드는 **off**다 — 기본값은 production이다.
+
+**데모 여부는 루프 전체에 유지되는 상태다.** 이슈마다 다시 판단하지 않는다. `build.md`에 그대로
+전달하고, 완료 보고에도 어느 모드로 돌았는지 남긴다.
 
 ## 전제조건 — 외부 스킬·도구 의존
 
