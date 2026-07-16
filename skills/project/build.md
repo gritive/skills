@@ -525,6 +525,8 @@ land-and-deploy는 그런 결함을 BLOCKER가 아니라 WARNING으로 분류하
 
 PR이 실제 merged 상태인지(`gh pr view <N> --json state,mergedAt`) 확인한 뒤에만 다음 이슈로 진행한다. merge 실패/PR closed without merge면 멈추고 보고한다.
 
+**merge가 확인되면 에픽 체크박스를 갱신한다.** 완료한 이슈가 에픽의 하위 작업(본문에 `부모: #<에픽>` 마커가 있거나 에픽의 sub-issue)이면, 에픽 본문에서 이 이슈에 대응하는 체크박스를 `- [x]`로 갱신한다(`gh issue edit <에픽>`). 에픽의 모든 체크박스가 완료되면 에픽 이슈도 닫는다(`gh issue close`). 대응 항목이 없으면 건드리지 않는다 — 없는 체크박스를 만들지 않는다.
+
 ### 11. 다음 이슈로
 1단계로 돌아가 백로그를 다시 fresh fetch하고 반복한다. 입력에서 상한을 지정했으면 그 수만큼 처리 후 멈춘다.
 
