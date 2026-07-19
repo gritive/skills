@@ -124,31 +124,31 @@ RFP(과업지시서) 한 장에서 프로젝트의 기획·기준 문서와 이�
 자율적으로 처리합니다.
 
 ```
+/project                    # 인자 없음 → loop 와 동일
 /project setup <RFP-path>   # RFP → PRD · design-guide · CLAUDE.md · README 생성
 /project prd-to-issue       # PRD를 의존성 순서 GitHub 이슈로 분해
 /project sync               # 공유 템플릿으로 프로젝트 CLAUDE.md/README 보강 (additive-only)
 /project gap                # RFP·PRD 대비 실제 구현 gap + UI 노출 여부 분석
 /project build [상한]       # 이슈 백로그를 완전 자율로 burndown (PR마다 머지 재확인 없음)
-/project build --demo [상한] # 같은 루프를 production이 아니라 데모 가능한 깊이로
+/project loop [라운드상한]  # build→gap→build→persona-test→build를 수렴까지 반복
 ```
 
-**`--demo`** — 외부 API·결제·발송·미확보 데이터를 mock/stub/seed로 대체하고, 신규 테스트 필수 게이트 대신
-스모크 검증으로 통과시킵니다. 플래그 없이 문장으로도 켜집니다("데모 수준으로 빌드"). 낮추는 것은 **구현 깊이와
-검증뿐**입니다 — 머지·배포 파이프라인과 보안 중단 조건은 production과 동일합니다.
+**`loop`** — 백로그를 태우는 것을 넘어 **더 만들 것이 없어질 때까지** 일감을 스스로 찾습니다. 한
+라운드는 `build`(백로그 소진) → `gap`(문서 대비 gap을 이슈로) → `build` → `persona-test`(고객 관점
+문제를 이슈로) → `build`이고, **한 라운드가 새 빌드가능 이슈를 하나도 만들지 못하면** 수렴·종료합니다.
+인자 없이 `/project`만 쳐도 `loop`로 갑니다.
 
-데모 코드도 실제로 merge·deploy되므로 안전장치가 붙습니다:
+수렴 안전장치(`review-forever`와 같은 불변식):
 
-- **`demo`는 외부 차단 요인이 있을 때만** 씁니다(키 미확보, 스키마 미확정, 실비용 발생 등). "구현이 어려워서"는
-  사유가 아닙니다 — 안 그러면 전 요구사항을 mock으로 밀고 백로그를 0으로 만들 수 있습니다.
-- **격리 경계는 대상 CLAUDE.md에 경로 집합으로 선언**하고, `git diff --name-only`의 부분집합 여부로 **계산**합니다.
-  에이전트가 "이 정도면 격리됐다"고 판단하는 게이트는 게이트가 아닙니다.
-- **인증 mock은 기본 금지**입니다. 격리 규약이 이미 문서에 있고, production과 분리된 데모 배포 타깃이 선언돼
-  있고, mock 신원이 최소 권한일 때만 열립니다. 배포 타깃이 하나뿐인데 인증을 mock하면 "데모 보려면 플래그
-  켜세요"가 곧 "프로덕션에서 인증 끄세요"가 됩니다.
-- **플래그 on/off 양쪽을 스모크 검증**합니다. 배포본의 기본값은 off이므로, off 경로가 사용자가 실제로 만나는
-  유일한 상태입니다.
-- mock으로 때운 이슈는 닫히기 전에 **`demo-debt` 라벨이 붙은 승격 이슈**를 남겨 부채를 백로그에 기록합니다.
-  데모 루프는 이 라벨을 제외하고(무한루프 방지), production 모드에서는 이 부채를 갚는 게 본업입니다.
+- **완료·정체는 원시 발견 수가 아니라 "새로 만든 빌드가능 이슈"로 잽니다** — gap/persona는 라운드 간
+  기억이 없어 이미 이슈로 있는 것을 매번 다시 발견하므로, 원시 수로 재면 루프가 끝나지 않습니다.
+- **빌드 제외 클래스**(`question`·`credential`·에픽·blocked)는 큐에서 뺍니다 — 사람·고객의 몫이지
+  루프의 몫이 아닙니다.
+- **build가 중단 조건(보안 결함 등)으로 멈추면 루프도 멈춥니다** — gap/persona로 넘어가지 않습니다(중단 ≠ 수렴).
+- **persona는 실행 중인 서비스를 요구**합니다. 못 띄우면 그 라운드 persona는 "미검증"이 되어 **수렴
+  종료 신호로 쓰이지 못합니다** — 검사 안 한 것을 "발견 0"으로 세지 않습니다.
+- **전제조건: 이슈 관리 방식**(gh + CLAUDE.md "이슈 관리")이 있어야 합니다. 없으면 build가 소비할
+  백로그가 안 만들어지므로 흉내 내지 않고 멈춥니다.
 
 **이 스킬은 오케스트레이터입니다 — 외부 스킬·도구에 의존합니다.**
 
@@ -157,6 +157,7 @@ RFP(과업지시서) 한 장에서 프로젝트의 기획·기준 문서와 이�
 | `setup`                 | `deep-research` 스킬                       | Claude Code 기본 제공 |
 | `prd-to-issue`, `build` | `gh` CLI (인증된 상태)                     | GitHub CLI        |
 | `build`                 | `land-and-deploy` (+ 선택적으로 `investigate`, `feature-pipeline`) | [gstack](https://github.com/gstack-sh/gstack) |
+| `loop`                  | `build`·`gap`·`persona-test` + 그 의존 전부, persona용 실행 서비스·브라우저 | 이 플러그인 / 위 |
 
 의존 대상이 없으면 해당 서브커맨드는 절차를 임의로 재구현하지 않고 중단합니다.
 이 표의 원본은 `skills/project/SKILL.md`입니다 — 런타임에 로드되는 건 그쪽입니다.
