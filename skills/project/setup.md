@@ -9,13 +9,16 @@
 ## 절차
 
 ### 1. RFP 읽기
+
 - RFP를 Read로 읽고 도메인·목표·주요 요구·제약을 파악한다.
 
 ### 2. deep-research #1 — 도메인/시장/베스트프랙티스
-- **Claude Code 기본 제공 `deep-research` 스킬**을 호출한다(추가 설치 불필요). research question 예: "{도메인} 서비스의 표준 기능 범위, 경쟁 제품, 데이터 모델 관례, 운영 워크플로우 베스트프랙티스는?"
+
+- **`deep-research`**을 호출한다(추가 설치 불필요). research question 예: "{도메인} 서비스의 표준 기능 범위, 경쟁 제품, 데이터 모델 관례, 운영 워크플로우 베스트프랙티스는?"
 - 결과를 `docs/research/domain-research.md`로 저장(디렉터리 없으면 생성).
 
 ### 3. 기술스택·툴체인 확정
+
 - RFP가 스택을 명시하면(예: "SvelteKit 기반") 그대로 채택한다. 명시가 없거나 불완전하면 도메인·요구에 맞게 **결정**한다.
 - 언어·프레임워크만이 아니라 이후 슬롯이 요구하는 세부까지 정한다: 패키지 매니저, ORM/DB, 마이그레이션·시드·테스트 명령 세트. 이 결정이 이후 `{{TECH_STACK}}`·`{{COMMANDS}}`·`{{GETTING_STARTED}}`와 5단계 research question의 `{기술스택}` 근거다.
 - 언어가 Python이면(RFP가 다른 웹 프레임워크·ORM·패키지 매니저를 명시하지 않는 한) 웹 프레임워크는 FastAPI, ORM은 SQLAlchemy, 패키지 매니저는 uv를 기본값으로 채택한다.
@@ -23,6 +26,7 @@
 - 언어가 JavaScript/TypeScript(Node.js)이면(RFP가 다른 프레임워크·ORM·패키지 매니저를 명시하지 않는 한) 프레임워크는 SvelteKit, ORM은 Drizzle, 패키지 매니저는 bun을 기본값으로 채택한다.
 
 ### 4. PRD 생성 또는 갱신 (`docs/prd.md`)
+
 - RFP + research #1을 근거로 작성한다. 이미 `docs/prd.md`가 있으면 research 결과를 **반영(갱신)** 하되 기존 결정 이력을 보존한다.
 - 필수 섹션 스켈레톤:
   1. 개요 (배경 / 목표 / 1차 범위 원칙)
@@ -34,19 +38,23 @@
   7. 결정 사항 — 채택 스택(3단계)과 미확정 이슈(`Q1..Qn`)를 기록한다
 
 ### 5. deep-research #2 — 디자인/UX
+
 - `deep-research`를 다시 호출한다. research question 예: "{제품 유형}의 데이터 테이블/폼/대시보드/RBAC UX 베스트프랙티스, {기술스택} 컴포넌트 매핑, WCAG AA 기준은?"
 - 결과를 `docs/research/design-research.md`로 저장.
 
 ### 6. 디자인·UX 가이드 생성 (`docs/design-guide.md`)
+
 - RFP + PRD + research #2로 작성. 각 근거에 신뢰도 표기(`[소스]` / `[검증]` / `[관례]` / `[PRD]`)를 단다.
 - 필수 섹션 스켈레톤: 핵심 원칙 / 디자인 토큰 / 데이터 테이블 / 입력 폼 / 대시보드 / RBAC UX / 공통 상태(로딩·빈·오류) / 접근성 체크리스트 / 컴포넌트 인벤토리 / 출처.
 - (선택) 메뉴·라우트가 복잡하면 `docs/ia.md`(사이트맵 / 메뉴 정의 / 역할별 진입 / 라우트 구조)도 생성한다.
 
 ### 7. gap 분석 (fresh-eye subagent)
+
 - Agent 툴로 subagent 1회 dispatch. 프롬프트: "RFP와 PRD를 fresh eye로 읽고, RFP 요구 중 PRD가 누락·모호·상충하는 항목만 목록화하라. 각 항목에 RFP 근거 위치와 제안 보강안을 붙여라. 구현 얘기는 하지 마라."
 - 결과를 받아 PRD를 보강한다(누락 요구 추가, 미확정 이슈를 `Q` 항목/결정 이력에 반영).
 
 ### 8. CLAUDE.md / README.md 생성
+
 - **이 스킬 디렉터리의** `templates/CLAUDE.md.template`, `templates/README.md.template`을 Read로 읽는다.
   경로는 스킬 파일 기준이지 대상 프로젝트 cwd 기준이 아니다 — 이 스킬은 대상 프로젝트에서 실행되므로
   `./templates/…`로 읽으려 하면 실패한다.
@@ -65,6 +73,7 @@
 - 공유 baseline 불릿(Clean Architecture 원칙 / God Object 방지 / 개발 원칙, 그리고 이슈 관리·Architecture·구현 기준의 baseline 불릿)은 템플릿 그대로 유지하고, `<!-- setup: … -->` 주석은 채운 뒤 지운다.
 
 ### 9. 문서 라우팅 반영
+
 - 실제 생성된 문서(prd / design-guide / ia 중 존재하는 것)만으로 CLAUDE.md "문서 라우팅" 표 행을 채운다. "충돌하면 구체 → 원문 순 우선" 규칙 문장을 유지한다.
 
 ## 완료 보고

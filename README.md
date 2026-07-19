@@ -11,14 +11,14 @@
 
 **기본 대상은 base branch 대비 변경분입니다.** 전체 코드베이스 스캔은 `full`을 명시했을 때만 수행합니다.
 
-| 도메인       | 에이전트            | 점검 항목                                     |
-| ------------ | ------------------- | --------------------------------------------- |
-| Architecture | `arch-reviewer`     | 계층 위반, 순환 의존, 관심사 분리, 모듈 구조  |
-| Refactoring  | `refactor-reviewer` | 코드 중복, 복잡도, 코드 스멜, 네이밍          |
-| Dead Code    | `deadcode-reviewer` | 미사용 함수, 고아 파일, 미사용 의존성         |
-| Performance  | `perf-reviewer`     | N+1 쿼리, 메모리 릭, Core Web Vitals, 번들 크기 |
+| 도메인       | 에이전트            | 점검 항목                                                  |
+| ------------ | ------------------- | ---------------------------------------------------------- |
+| Architecture | `arch-reviewer`     | 계층 위반, 순환 의존, 관심사 분리, 모듈 구조               |
+| Refactoring  | `refactor-reviewer` | 코드 중복, 복잡도, 코드 스멜, 네이밍                       |
+| Dead Code    | `deadcode-reviewer` | 미사용 함수, 고아 파일, 미사용 의존성                      |
+| Performance  | `perf-reviewer`     | N+1 쿼리, 메모리 릭, Core Web Vitals, 번들 크기            |
 | Security     | `security-reviewer` | 인증/인가, 입력 검증, 주입 공격, 공급망, OWASP Top 10:2025 |
-| Frontend     | `frontend-reviewer` | 타입 안전성, 컴포넌트 품질, a11y(WCAG 2.2), 상태 관리 |
+| Frontend     | `frontend-reviewer` | 타입 안전성, 컴포넌트 품질, a11y(WCAG 2.2), 상태 관리      |
 
 ```
 /codebase-review                          # base branch 대비 변경분, 6개 도메인 (기본)
@@ -152,12 +152,12 @@ RFP(과업지시서) 한 장에서 프로젝트의 기획·기준 문서와 이�
 
 **이 스킬은 오케스트레이터입니다 — 외부 스킬·도구에 의존합니다.**
 
-| 서브커맨드              | 의존 대상                                  | 출처              |
-| ----------------------- | ------------------------------------------ | ----------------- |
-| `setup`                 | `deep-research` 스킬                       | Claude Code 기본 제공 |
-| `prd-to-issue`, `build` | `gh` CLI (인증된 상태)                     | GitHub CLI        |
-| `build`                 | `land-and-deploy` (+ 선택적으로 `investigate`, `feature-pipeline`) | [gstack](https://github.com/gstack-sh/gstack) |
-| `loop`                  | `build`·`gap`·`persona-test` + 그 의존 전부, persona용 실행 서비스·브라우저 | 이 플러그인 / 위 |
+| 서브커맨드              | 의존 대상                                                                   | 출처                                          |
+| ----------------------- | --------------------------------------------------------------------------- | --------------------------------------------- |
+| `setup`                 | `deep-research` 스킬                                                        | Claude Code 기본 제공                         |
+| `prd-to-issue`, `build` | `gh` CLI (인증된 상태)                                                      | GitHub CLI                                    |
+| `build`                 | `land-and-deploy` (+ 선택적으로 `investigate`, `feature-pipeline`)          | [gstack](https://github.com/gstack-sh/gstack) |
+| `loop`                  | `build`·`gap`·`persona-test` + 그 의존 전부, persona용 실행 서비스·브라우저 | 이 플러그인 / 위                              |
 
 의존 대상이 없으면 해당 서브커맨드는 절차를 임의로 재구현하지 않고 중단합니다.
 이 표의 원본은 `skills/project/SKILL.md`입니다 — 런타임에 로드되는 건 그쪽입니다.
@@ -253,12 +253,12 @@ gritive/
 
 모든 리뷰 에이전트는 공통 인터페이스를 따릅니다:
 
-| 입력    | 값                                                       |
-| ------- | -------------------------------------------------------- |
-| `mode`  | `base-diff` (기본) 또는 `full`                           |
-| `scope` | `backend` / `frontend` / `all`                           |
+| 입력    | 값                                                                          |
+| ------- | --------------------------------------------------------------------------- |
+| `mode`  | `base-diff` (기본) 또는 `full`                                              |
+| `scope` | `backend` / `frontend` / `all`                                              |
 | `base`  | `git diff`에 넘길 리뷰 기준 인자 (`origin/main...HEAD`, `HEAD`, `--cached`) |
-| `files` | 리뷰 대상 파일 목록 (`mode=base-diff`일 때만 전달)       |
+| `files` | 리뷰 대상 파일 목록 (`mode=base-diff`일 때만 전달)                          |
 
 **범위 규칙**
 

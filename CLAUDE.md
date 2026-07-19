@@ -80,6 +80,7 @@ skills / agents / hooks 로만 컨텍스트를 기여하고, `plugin.json`에는
 ## Agent Contract
 
 리뷰 에이전트 공통 규칙:
+
 - 모든 에이전트는 프롬프트에서 `mode` (base-diff/full), `scope` (backend/frontend/all),
   `base` (git diff에 넘길 리뷰 기준 인자), `files` (대상 파일 목록, base-diff일 때만)를 받는다
 - `files`는 **파일 목록이지 diff가 아니다.** 변경 내용이 필요하면 `git diff {base} -- {files}`로 본다.
@@ -107,6 +108,7 @@ skills / agents / hooks 로만 컨텍스트를 기여하고, `plugin.json`에는
 ## Development
 
 에이전트 추가/수정 시:
+
 - `agents/` 디렉토리에 `.md` 파일 생성
 - frontmatter에 `name`, `description`, `effort`, `tools` 포함. `tools`는 **콤마 구분 문자열**이다
   (`tools: Read, Grep, Glob, Bash`). YAML 배열은 `.md` 에이전트의 문서화된 형식이 아니다

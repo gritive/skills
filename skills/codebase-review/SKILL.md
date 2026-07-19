@@ -20,14 +20,14 @@ description: "Use when the user asks for a codebase review, code health check, a
 
 ## 리뷰 도메인
 
-| 도메인       | 에이전트              | 점검 항목                                            |
-| ------------ | --------------------- | ---------------------------------------------------- |
-| Architecture | `arch-reviewer`       | 계층 위반, 순환 의존, 관심사 분리, 모듈 구조         |
-| Refactoring  | `refactor-reviewer`   | 코드 중복, 복잡도, 코드 스멜, 네이밍                 |
-| Dead Code    | `deadcode-reviewer`   | 미사용 함수, 고아 파일, 미사용 의존성                |
-| Performance  | `perf-reviewer`       | N+1 쿼리, 메모리 릭, Core Web Vitals, 번들 크기, 캐싱 |
-| Security     | `security-reviewer`   | 인증/인가, 입력 검증, 주입 공격, 공급망, OWASP Top 10:2025 |
-| Frontend     | `frontend-reviewer`   | 타입 안전성, 컴포넌트 품질, a11y(WCAG 2.2), 상태 관리, SSR 호환성 |
+| 도메인       | 에이전트            | 점검 항목                                                         |
+| ------------ | ------------------- | ----------------------------------------------------------------- |
+| Architecture | `arch-reviewer`     | 계층 위반, 순환 의존, 관심사 분리, 모듈 구조                      |
+| Refactoring  | `refactor-reviewer` | 코드 중복, 복잡도, 코드 스멜, 네이밍                              |
+| Dead Code    | `deadcode-reviewer` | 미사용 함수, 고아 파일, 미사용 의존성                             |
+| Performance  | `perf-reviewer`     | N+1 쿼리, 메모리 릭, Core Web Vitals, 번들 크기, 캐싱             |
+| Security     | `security-reviewer` | 인증/인가, 입력 검증, 주입 공격, 공급망, OWASP Top 10:2025        |
+| Frontend     | `frontend-reviewer` | 타입 안전성, 컴포넌트 품질, a11y(WCAG 2.2), 상태 관리, SSR 호환성 |
 
 ## CLAUDE.md 연동
 
@@ -46,13 +46,13 @@ description: "Use when the user asks for a codebase review, code health check, a
 
 **리뷰 모드 (택 1, 기본은 base-diff)**
 
-| 인자          | 모드        | 대상                                                    |
-| ------------- | ----------- | ------------------------------------------------------- |
-| (없음)        | `base-diff` | base branch 대비 변경 파일 (**기본**)                   |
-| `full`        | `full`      | 코드베이스 전체 — **명시할 때만** 실행                  |
-| `<git-rev>`   | `base-diff` | 지정한 git revision 표현식의 diff                       |
-| `--working`   | `base-diff` | 커밋되지 않은 변경분 (스테이징 + 워킹트리 + untracked)  |
-| `--staged`    | `base-diff` | 스테이징된 변경분만                                     |
+| 인자        | 모드        | 대상                                                   |
+| ----------- | ----------- | ------------------------------------------------------ |
+| (없음)      | `base-diff` | base branch 대비 변경 파일 (**기본**)                  |
+| `full`      | `full`      | 코드베이스 전체 — **명시할 때만** 실행                 |
+| `<git-rev>` | `base-diff` | 지정한 git revision 표현식의 diff                      |
+| `--working` | `base-diff` | 커밋되지 않은 변경분 (스테이징 + 워킹트리 + untracked) |
+| `--staged`  | `base-diff` | 스테이징된 변경분만                                    |
 
 **`<git-rev>` 판별 규칙**
 
@@ -81,6 +81,7 @@ description: "Use when the user asks for a codebase review, code health check, a
 | `--domain <name>` | 특정 도메인만 (arch, refactor, deadcode, perf, security, frontend). 콤마로 복수 |
 
 **도메인 필터링 규칙**
+
 - `--domain`이 없으면 scope에 따라 관련 도메인 전부 실행
 - scope=`backend`이면 Frontend 도메인 자동 제외
 - scope=`frontend`이면 Frontend 외 도메인도 실행하되, `files`가 프론트엔드 파일로만 채워진다
@@ -163,14 +164,14 @@ git diff --name-only --diff-filter=d <ref>...HEAD    # abc123 → abc123...HEAD
 **가드레일은 scope 필터링 이후에 판정한다.** 필터링 전에 판정하면 "수집 30개 → scope 필터 후 0개"인
 경우를 놓쳐, 6개 에이전트가 빈 목록으로 돌고 **전부 0인 '깨끗한' 리포트**가 나온다.
 
-| 상황                                  | 처리                                                                                    |
-| ------------------------------------- | --------------------------------------------------------------------------------------- |
-| git 저장소가 아님                     | 중단. `full` 사용 여부를 사용자에게 확인                                                |
-| base branch를 못 찾음                 | 중단. 탐지 실패를 알리고 revision을 직접 지정하거나 `full`을 쓰라고 안내                |
-| **git diff 명령이 실패**              | 중단. shallow clone(`--unshallow` 필요), orphan branch, unrelated histories에서 `no merge base`로 죽는다. **추측해서 `full`이나 `--working`으로 대체하지 않는다.** |
-| 수집 결과 0개                         | 중단. "리뷰할 변경분 없음"을 보고하고 `--working` 또는 `full` 사용을 제안               |
-| **scope 필터링 후 0개**               | 중단. "변경 파일 N개가 모두 `{scope}` 밖"이라고 **명확히 구분해서** 보고하고 scope 변경을 제안. 빈 목록으로 에이전트를 실행하지 않는다 |
-| 대상 파일 500개 초과                  | 사용자에게 확인 후 진행 (범위가 의도한 것인지 검증)                                     |
+| 상황                     | 처리                                                                                                                                                               |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| git 저장소가 아님        | 중단. `full` 사용 여부를 사용자에게 확인                                                                                                                           |
+| base branch를 못 찾음    | 중단. 탐지 실패를 알리고 revision을 직접 지정하거나 `full`을 쓰라고 안내                                                                                           |
+| **git diff 명령이 실패** | 중단. shallow clone(`--unshallow` 필요), orphan branch, unrelated histories에서 `no merge base`로 죽는다. **추측해서 `full`이나 `--working`으로 대체하지 않는다.** |
+| 수집 결과 0개            | 중단. "리뷰할 변경분 없음"을 보고하고 `--working` 또는 `full` 사용을 제안                                                                                          |
+| **scope 필터링 후 0개**  | 중단. "변경 파일 N개가 모두 `{scope}` 밖"이라고 **명확히 구분해서** 보고하고 scope 변경을 제안. 빈 목록으로 에이전트를 실행하지 않는다                             |
+| 대상 파일 500개 초과     | 사용자에게 확인 후 진행 (범위가 의도한 것인지 검증)                                                                                                                |
 
 전체 코드베이스 스캔은 비용이 크고 노이즈가 많다. **어떤 경우에도 자동으로 `full`로 확장하지 않는다.**
 git 명령이 실패하거나 목록이 예상보다 크다는 것은 `full`로 전환할 이유가 **아니다**.
@@ -220,6 +221,7 @@ Agent(subagent_type="gritive:<domain>-reviewer", prompt="
 그건 정반대 방향이다.
 
 도메인별 지시:
+
 - `arch-reviewer` — 프로젝트의 아키텍처 원칙과 Critical Rules
 - `refactor-reviewer` — 프로젝트의 코딩 규칙과 네이밍 컨벤션
 - `deadcode-reviewer` — 프로젝트 구조와 특수 진입점
@@ -257,11 +259,11 @@ Agent(subagent_type="gritive:<domain>-reviewer", prompt="
 
 **세 가지 상태를 구분한다:**
 
-| 상태          | 표기                    | 의미                                          |
-| ------------- | ----------------------- | --------------------------------------------- |
-| 이슈 없음     | `0`                     | 에이전트가 대상 파일을 리뷰했고 발견 사항 없음 |
-| 대상 없음     | `N/A (대상 파일 없음)`  | `files`에 해당 도메인 파일이 없어 리뷰 안 함  |
-| 미실행        | 테이블에서 제외         | 에이전트를 띄우지 않음 (`--domain` 필터 등)   |
+| 상태      | 표기                   | 의미                                           |
+| --------- | ---------------------- | ---------------------------------------------- |
+| 이슈 없음 | `0`                    | 에이전트가 대상 파일을 리뷰했고 발견 사항 없음 |
+| 대상 없음 | `N/A (대상 파일 없음)` | `files`에 해당 도메인 파일이 없어 리뷰 안 함   |
+| 미실행    | 테이블에서 제외        | 에이전트를 띄우지 않음 (`--domain` 필터 등)    |
 
 **`대상 없음`을 `0`으로 표기하지 않는다.** 둘 다 "깨끗함"처럼 보이지만 전혀 다르다 —
 하나는 검사했고, 하나는 검사조차 안 했다.
@@ -272,12 +274,15 @@ Agent(subagent_type="gritive:<domain>-reviewer", prompt="
 | --- | ------ | ------ | --------- | ---- | --------- |
 
 ## 도메인별 상세
+
 (실행된 도메인만 섹션 포함)
 
 ## 액션 플랜
 
 ### 즉시 수정 (이번 스프린트)
+
 ### 단기 개선 (1-2주)
+
 ### 장기 리팩토링 (백로그)
 ```
 
@@ -291,6 +296,7 @@ Agent(subagent_type="gritive:<domain>-reviewer", prompt="
 ### Phase 5: 후속 조치 (선택)
 
 사용자가 요청하면:
+
 1. 발견된 이슈를 태스크 관리 도구에 등록
 2. 특정 이슈를 바로 수정 (TDD 원칙에 따라)
 3. 리포트를 **사용자가 지정한 경로**에 저장 — 경로를 받지 못했으면 물어본다. 저장 요청이 없으면
