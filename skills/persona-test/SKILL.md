@@ -27,25 +27,28 @@ description: "Use when the user asks to test a service as a real customer, do pe
 
 ### 브라우저 도구와 스크린샷
 
-**Web UI는 claude-in-chrome MCP로 조작한다.** 세션 시작 시 `tabs_context_mcp`를 **먼저** 호출해
-탭 상황을 파악하고, 이 대화 전용 **새 탭을 `tabs_create_mcp`로 만든다.** 기존 탭은 사용자가 명시
-요청할 때만 재사용한다.
+**Web UI는 Playwright MCP(`mcp__playwright__*`)로 조작한다.** Playwright는 **자체 격리 브라우저**를
+띄우므로 사용자의 기존 Chrome 세션·탭과 무관하다 — `browser_navigate`로 대상 URL을 바로 연다.
+**여러 탭을 쓰지 않는다.** 한 페이지에서 이동하며 시나리오를 진행한다.
+
+**조작은 스냅샷 기반으로 한다.** `browser_snapshot`으로 접근성 트리(각 요소의 `ref` 포함)를 얻고,
+그 `ref`로 `browser_click`·`browser_type`·`browser_select_option`을 호출한다. 좌표 클릭이 아니라
+요소 참조로 조작하므로 페르소나가 실제로 상호작용하는 요소를 정확히 겨냥한다. 동적 로딩·전환은
+`browser_wait_for`로 기다린다.
 
 **주요 화면은 스크린샷으로 남겨 보존한다 — 나중에 쓸 수 있게.** 스크린샷은 근거 보존용인 동시에
-**시각적 UX 평가의 판정 근거**다 (Phase 4의 Web UI 관찰 포인트 참조). DOM만 읽지 말고 페르소나가
-실제로 보는 렌더된 화면을 본다. 빈 상태·에러 화면·완료 화면, 페르소나 시나리오의 각 핵심 단계 등
-발견사항의 근거가 될 화면은 반드시 찍는다:
+**시각적 UX 평가의 판정 근거**다 (Phase 4의 Web UI 관찰 포인트 참조). 스냅샷(DOM)만 읽지 말고
+페르소나가 실제로 보는 렌더된 화면을 본다. 빈 상태·에러 화면·완료 화면, 페르소나 시나리오의 각
+핵심 단계 등 발견사항의 근거가 될 화면은 반드시 찍는다:
 
-- `computer` action=`screenshot`에 **`save_to_disk: true`**를 준다. 저장 경로가 **tool 결과로
-  돌아온다**(확장이 관리하는 경로이며 프로젝트 cwd가 아니다)
+- `browser_take_screenshot`에 `filename`을 주어 저장한다. 저장 경로가 **tool 결과로 돌아온다**
+  (Playwright MCP가 관리하는 출력 디렉토리이며 프로젝트 cwd가 아니다)
 - 실행 중에는 반환 경로를 세션 임시 디렉토리에 모아 두고(`cp`/`mv`) 리포트에서 참조한다. 파일명은
   `{페르소나ID}-{단계}.png`처럼 **나중에 찾기 쉽게** 붙인다
 - **세션 임시 디렉토리는 사라질 수 있으므로, 보존용 저장 위치를 사용자에게 확인해 그곳에 복사한다.**
   산출물 규칙상 대상 저장소에 스킬 이름 디렉토리를 만들지 않으니 경로는 **사용자 지정 위치**를 쓴다
   (경로를 못 받았으면 물어본다)
 - 리포트의 각 발견사항에 근거 스크린샷을 연결하고, 핵심 화면은 `SendUserFile`로 사용자에게 전달한다
-- 조작 과정을 녹화하려면 `gif_creator`를 쓰고 `export`를 `download: true`로 내보낸다 — GIF는
-  브라우저 다운로드 폴더에 떨어진다(대상 저장소가 아니다)
 
 리포트·로그를 파일로 남길 일이 생겨도 위 임시 디렉토리에 둔다.
 
@@ -79,7 +82,7 @@ description: "Use when the user asks to test a service as a real customer, do pe
 
 | 인터페이스 | 설명                   | 도구                 |
 | ---------- | ---------------------- | -------------------- |
-| `web`      | 브라우저 기반 웹 UI    | claude-in-chrome MCP |
+| `web`      | 브라우저 기반 웹 UI    | Playwright MCP       |
 | `cli`      | CLI 명령어             | Bash tool            |
 | `mcp`      | MCP 도구 직접 호출     | MCP tools            |
 | `api`      | REST/GraphQL API       | Bash (curl)          |
@@ -157,8 +160,10 @@ CLAUDE.md에 프로젝트 페르소나가 정의되어 있으면 사용한다. �
 
 ### 인터페이스별 테스트 가이드
 
-**Web UI**: claude-in-chrome MCP로 브라우저 조작 (`tabs_context_mcp`→`tabs_create_mcp`로 새 탭
-확보 후 `navigate`/`computer`/`read_page`). 스크린샷 처리는 상단 **산출물 규칙**을 따른다.
+**Web UI**: Playwright MCP로 브라우저 조작 (`browser_navigate`로 진입 → `browser_snapshot`으로
+요소 파악 → `browser_click`/`browser_type`으로 조작, `browser_wait_for`로 대기). 로컬 개발 서버라
+로그인이 필요하면 1-2에서 로딩한 테스트 계정으로 `browser_type`을 써서 로그인 폼을 직접 채운다.
+탭은 쓰지 않는다. 스크린샷 처리는 상단 **산출물 규칙**을 따른다.
 
 **CLI**: Bash tool로 명령어 실행. 명령어 + 출력을 마크다운 코드블록으로 기록.
 

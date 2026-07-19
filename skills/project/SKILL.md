@@ -52,7 +52,7 @@ RFP 한 장에서 프로젝트의 기획 문서·기준 문서·이슈를 부트
 | `build`                 | `land-and-deploy` 스킬                                              | [gstack](https://github.com/gstack-sh/gstack) |
 | `build`                 | `investigate`, `feature-pipeline` (구현 위임 시, 선택)              | gstack                                        |
 | `loop`                  | `build`·`gap`·`persona-test` 서브스킬 전부 + 그것들의 의존(위 전부) | 이 플러그인 / 위                              |
-| `loop`                  | 실행 가능한 서비스(persona 단계) + 브라우저(`claude-in-chrome`)     | 대상 프로젝트 / MCP                           |
+| `loop`                  | 실행 가능한 서비스(persona 단계) + 브라우저(`Playwright MCP`)       | 대상 프로젝트 / MCP                           |
 
 **의존 대상이 없으면 그 서브커맨드를 흉내 내지 말고 멈춘다.** 예를 들어 `build`가 `land-and-deploy`를
 찾지 못하면, 머지·배포 절차를 임의로 재구현하지 말고 "gstack의 `land-and-deploy`가 필요하다"고
