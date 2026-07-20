@@ -20,10 +20,10 @@
 ### 3. 기술스택·툴체인 확정
 
 - RFP가 스택을 명시하면(예: "SvelteKit 기반") 그대로 채택한다. 명시가 없거나 불완전하면 도메인·요구에 맞게 **결정**한다.
-- 언어·프레임워크만이 아니라 이후 슬롯이 요구하는 세부까지 정한다: 패키지 매니저, ORM/DB, 마이그레이션·시드·테스트 명령 세트. 이 결정이 이후 `{{TECH_STACK}}`·`{{COMMANDS}}`·`{{GETTING_STARTED}}`와 5단계 research question의 `{기술스택}` 근거다.
+- 언어·프레임워크만이 아니라 이후 슬롯이 요구하는 세부까지 정한다: 패키지 매니저, ORM/DB, 마이그레이션·시드·테스트 명령 세트, **UI 계층(CSS 프레임워크·컴포넌트 라이브러리)**. UI가 있는 제품이면 CSS 프레임워크·컴포넌트 라이브러리를 반드시 확정해 `{{TECH_STACK}}`에 넣는다 — 프레임워크만 적고 스타일링·컴포넌트 계층을 빠뜨리지 마라. 이 결정이 이후 `{{TECH_STACK}}`·`{{COMMANDS}}`·`{{GETTING_STARTED}}`와 5단계 research question의 `{기술스택}` 근거다.
 - 언어가 Python이면(RFP가 다른 웹 프레임워크·ORM·패키지 매니저를 명시하지 않는 한) 웹 프레임워크는 FastAPI, ORM은 SQLAlchemy, 패키지 매니저는 uv를 기본값으로 채택한다.
 - 언어가 Go이면(RFP가 다른 웹 프레임워크·ORM을 명시하지 않는 한) 웹 프레임워크는 Echo, ORM은 GORM을 기본값으로 채택한다.
-- 언어가 JavaScript/TypeScript(Node.js)이면(RFP가 다른 프레임워크·ORM·패키지 매니저를 명시하지 않는 한) 프레임워크는 SvelteKit, ORM은 Drizzle, 패키지 매니저는 bun을 기본값으로 채택한다.
+- 언어가 JavaScript/TypeScript(Node.js)이면(RFP가 다른 프레임워크·ORM·패키지 매니저를 명시하지 않는 한) 프레임워크는 SvelteKit, ORM은 Drizzle, 패키지 매니저는 bun을 기본값으로 채택한다. SvelteKit에 UI가 있으면 CSS는 Tailwind CSS, 컴포넌트 라이브러리는 shadcn-svelte를 기본값으로 채택한다(RFP가 다른 스타일링·컴포넌트 스택을 명시하지 않는 한).
 
 ### 4. PRD 생성 또는 갱신 (`docs/prd.md`)
 
