@@ -1,7 +1,7 @@
 # Gritive
 
 코드베이스 종합 리뷰, 클린까지 반복하는 리뷰 루프, 페르소나 기반 UX 테스트, RFP 기반 프로젝트
-부트스트랩을 위한 Claude Code 플러그인.
+부트스트랩을 위한 Claude Code / Codex 플러그인.
 
 ## Features
 
@@ -174,6 +174,8 @@ RFP(과업지시서) 한 장에서 프로젝트의 기획·기준 문서와 이�
 
 ## Installation
 
+### Claude Code
+
 ```bash
 # 1. 마켓플레이스 등록
 claude plugin marketplace add gritive/skills
@@ -181,6 +183,19 @@ claude plugin marketplace add gritive/skills
 # 2. 플러그인 설치
 claude plugin install gritive
 ```
+
+### Codex
+
+```bash
+# 1. 마켓플레이스 등록
+codex plugin marketplace add gritive/skills
+
+# 2. 플러그인 설치
+codex plugin add gritive@gritive-skills
+```
+
+Codex는 `.agents/plugins/marketplace.json`에서 마켓플레이스를 읽고, `.codex-plugin/plugin.json`에서
+플러그인 메타데이터와 `skills/` 경로를 읽습니다.
 
 ## 프로젝트별 설정 (선택)
 
@@ -210,9 +225,14 @@ claude plugin install gritive
 
 ```
 gritive/
+├── .agents/
+│   └── plugins/
+│       └── marketplace.json # Codex 마켓플레이스 등록 정보
 ├── .claude-plugin/
 │   ├── plugin.json          # 플러그인 메타데이터 + 버전
 │   └── marketplace.json     # 마켓플레이스 등록 정보 (버전 동기화 대상)
+├── .codex-plugin/
+│   └── plugin.json          # Codex 플러그인 메타데이터 + 버전
 ├── agents/
 │   ├── arch-reviewer.md
 │   ├── deadcode-reviewer.md
@@ -298,8 +318,9 @@ git config alias.release '!bash scripts/push.sh'
 git release          # 0.2.0 → 0.2.1 → ... 자동 bump 후 push
 ```
 
-`push.sh`는 **patch만** 올립니다. minor·major bump는 `plugin.json`과 `marketplace.json`을 직접
-고치세요 — 두 파일에 버전이 따로 있으므로 항상 함께 바꿉니다. 마지막 커밋 제목이
+`push.sh`는 **patch만** 올립니다. minor·major bump는 `.claude-plugin/plugin.json`,
+`.claude-plugin/marketplace.json`, `.codex-plugin/plugin.json`을 직접 고치세요 — 버전이 여러 파일에
+따로 있으므로 항상 함께 바꿉니다. 마지막 커밋 제목이
 `chore: bump version`으로 시작하면 스크립트가 재bump를 건너뛰므로, 수동 bump는 마지막 커밋으로
 두면 됩니다.
 

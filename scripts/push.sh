@@ -4,6 +4,7 @@ set -e
 
 PLUGIN_JSON=".claude-plugin/plugin.json"
 MARKETPLACE_JSON=".claude-plugin/marketplace.json"
+CODEX_PLUGIN_JSON=".codex-plugin/plugin.json"
 
 if [ -f "$PLUGIN_JSON" ] && ! git log -1 --format=%s | grep -q "^chore: bump version"; then
     current=$(python3 -c "import json; print(json.load(open('$PLUGIN_JSON'))['version'])")
@@ -13,7 +14,7 @@ if [ -f "$PLUGIN_JSON" ] && ! git log -1 --format=%s | grep -q "^chore: bump ver
     python3 << PYEOF
 import json
 
-for path in ["$PLUGIN_JSON", "$MARKETPLACE_JSON"]:
+for path in ["$PLUGIN_JSON", "$MARKETPLACE_JSON", "$CODEX_PLUGIN_JSON"]:
     try:
         with open(path) as f:
             d = json.load(f)
@@ -28,7 +29,7 @@ for path in ["$PLUGIN_JSON", "$MARKETPLACE_JSON"]:
         pass
 PYEOF
 
-    git add "$PLUGIN_JSON" "$MARKETPLACE_JSON" 2>/dev/null
+    git add "$PLUGIN_JSON" "$MARKETPLACE_JSON" "$CODEX_PLUGIN_JSON" 2>/dev/null
     git commit -m "chore: bump version to $new_version"
     echo "✓ Bumped version to $new_version"
 fi

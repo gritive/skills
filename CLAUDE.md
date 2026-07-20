@@ -11,7 +11,11 @@
 - `skills/persona-test/` — 페르소나 기반 서비스 테스트 스킬
 - `skills/project/` — RFP → PRD·이슈 부트스트랩 + 백로그 자율 처리 (6개 서브커맨드 라우터: setup/prd-to-issue/sync/gap/build/loop)
 - `scripts/push.sh` — 버전 bump + push (`git release` alias)
-- `.claude-plugin/` — `plugin.json` + `marketplace.json` (버전이 양쪽에 있으므로 항상 함께 bump)
+- `.claude-plugin/` — Claude Code용 `plugin.json` + `marketplace.json`
+- `.codex-plugin/` — Codex용 `plugin.json`
+- `.agents/plugins/marketplace.json` — Codex용 marketplace 등록 정보
+- 버전은 `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `.codex-plugin/plugin.json`에
+  따로 있으므로 항상 함께 bump
 
 `skills/project/`는 `~/.claude/skills/prototype`(user space)에서 가져온 사본이다. 원본은 그대로
 남아 있으므로 **양쪽이 갈라진다.** 한쪽만 고치고 동기화됐다고 가정하지 마라.
