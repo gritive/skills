@@ -13,7 +13,7 @@ RFP 한 장에서 프로젝트의 기획 문서·기준 문서·이슈를 부트
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
 | `setup <RFP-path>` | RFP → deep-research → PRD → design/UX 가이드 → gap 보강 → CLAUDE.md/README 생성                                                             | `setup.md`        |
 | `prd-to-issue`     | PRD를 에픽으로 분해해 의존성 순서로 GitHub 이슈 생성                                                                                        | `prd-to-issue.md` |
-| `sync`             | 공유 템플릿 대비 프로젝트 CLAUDE.md/README의 누락 scaffold 보강 (additive-only)                                                             | `sync.md`         |
+| `sync`             | 공유 baseline 대비 프로젝트 CLAUDE.md + design-guide 인터랙션 규약의 누락분 보강 (additive-only)                                            | `sync.md`         |
 | `gap`              | RFP·PRD·design/UX 가이드 대비 **실제 구현**의 gap을 fresh eye로 분석하고, 구현된 기능의 UI 노출 여부까지 확인                               | `gap.md`          |
 | `build`            | GitHub 이슈 백로그를 **사람 개입 없이** 이슈 선택→구현→PR→merge/deploy→다음 이슈로 완전 자율 처리(PR마다 머지 재확인 없음)                  | `build.md`        |
 | `loop` (기본)      | `build`→`gap`→`build`→`persona-test`→`build`를 **새 빌드가능 이슈가 안 나올 때까지** 라운드로 반복. 인자 없이 `/project`만 쳐도 여기로 온다 | `loop.md`         |
@@ -30,7 +30,7 @@ RFP 한 장에서 프로젝트의 기획 문서·기준 문서·이슈를 부트
   (인자 없음)            loop 과 동일 — build→gap→persona-test 자율 반복
   setup <RFP-path>       RFP에서 PRD·디자인가이드·CLAUDE.md·README 생성
   prd-to-issue           PRD를 의존성 순서 GitHub 이슈로 분해
-  sync                   공유 템플릿으로 프로젝트 CLAUDE.md/README 보강
+  sync                   공유 baseline으로 CLAUDE.md + design-guide 인터랙션 규약 보강
   gap                    RFP·PRD·design/UX 가이드 대비 실제 구현 gap + UI 노출 여부 분석
   build [상한]           이슈 백로그를 완전 자율로 burndown(PR마다 머지 재확인 없음)
   loop [라운드상한]      build→gap→build→persona-test→build를 수렴까지 반복
@@ -58,7 +58,8 @@ RFP 한 장에서 프로젝트의 기획 문서·기준 문서·이슈를 부트
 찾지 못하면, 머지·배포 절차를 임의로 재구현하지 말고 "gstack의 `land-and-deploy`가 필요하다"고
 알리고 중단한다. 자율 머지 루프에서 게이트를 자체 구현하는 것은 위험하다.
 
-`gap`은 Agent 툴만 쓰므로 추가 의존이 없다. `sync`는 이 스킬 디렉터리의 `templates/`만 쓴다.
+`gap`은 Agent 툴만 쓰므로 추가 의존이 없다. `sync`는 이 스킬 디렉터리의 `templates/`와 `setup.md`
+6단계(인터랙션 규약 baseline의 정본)를 읽는다 — 그 표를 `sync.md`에 복제하지 않는다.
 
 `loop`는 자체 리뷰·구현 로직이 없다 — `build`/`gap`/`persona-test`를 순서대로 호출하고 그 결과로
 수렴을 판정할 뿐이다. `loop`는 이슈 관리 방식(gh + 대상 CLAUDE.md의 "이슈 관리" 섹션)이 있어야

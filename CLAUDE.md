@@ -12,7 +12,11 @@
 - `skills/project/` — RFP → PRD·이슈 부트스트랩 + 백로그 자율 처리 (6개 서브커맨드 라우터: setup/prd-to-issue/sync/gap/build/loop).
   `build`는 두 파일이다: `build.md`(오케스트레이터 — 선정·PR·머지)와 `build-issue.md`(이슈 하나를
   처리하는 subagent — split·Coverage Plan·구현·검증·Audit). 긴 세션에서 지침이 유실되므로 이슈마다
-  fresh subagent에 위임한다 — 아래 "긴 세션에서의 지침 유실" 참조
+  fresh subagent에 위임한다 — 아래 "긴 세션에서의 지침 유실" 참조.
+  **인터랙션 규약의 정본은 `setup.md` 6단계 하나다** — `sync.md` 4단계는 그 표를 복제하지 않고 읽어서
+  쓴다. `build-issue.md`·`gap.md`는 규약 절의 **존재**를 조건으로 삼으므로, 조건이 거짓일 때 조용히
+  넘어가지 않고 "`/project sync` 필요"를 보고하는 분기를 반드시 유지한다 — 그 분기가 없으면 규약이
+  없는 프로젝트에서 Storybook 정본 story backfill이 영영 발동하지 않는다(실측으로 재현됨)
 - `scripts/push.sh` — 버전 bump + push (`git release` alias)
 - `.claude-plugin/` — Claude Code용 `plugin.json` + `marketplace.json`
 - `.codex-plugin/` — Codex용 `plugin.json`
