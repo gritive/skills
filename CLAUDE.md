@@ -9,7 +9,10 @@
 - `skills/codebase-review/` — 에이전트 오케스트레이션 스킬
 - `skills/review-forever/` — 리뷰 스킬을 감싸 **실행 큐가 빌 때까지** 반복하는 루프 (자체 리뷰 로직 없음)
 - `skills/persona-test/` — 페르소나 기반 서비스 테스트 스킬
-- `skills/project/` — RFP → PRD·이슈 부트스트랩 + 백로그 자율 처리 (6개 서브커맨드 라우터: setup/prd-to-issue/sync/gap/build/loop)
+- `skills/project/` — RFP → PRD·이슈 부트스트랩 + 백로그 자율 처리 (6개 서브커맨드 라우터: setup/prd-to-issue/sync/gap/build/loop).
+  `build`는 두 파일이다: `build.md`(오케스트레이터 — 선정·PR·머지)와 `build-issue.md`(이슈 하나를
+  처리하는 subagent — split·Coverage Plan·구현·검증·Audit). 긴 세션에서 지침이 유실되므로 이슈마다
+  fresh subagent에 위임한다 — 아래 "긴 세션에서의 지침 유실" 참조
 - `scripts/push.sh` — 버전 bump + push (`git release` alias)
 - `.claude-plugin/` — Claude Code용 `plugin.json` + `marketplace.json`
 - `.codex-plugin/` — Codex용 `plugin.json`
@@ -129,3 +132,18 @@ skills / agents / hooks 로만 컨텍스트를 기여하고, `plugin.json`에는
 - 공통 인터페이스 계약 준수 (mode/scope/base/files, CLAUDE.md 로딩, 심각도 통일, 읽기 전용, 테이블 출력)
 - 전역 스캔이 필요한 점검 항목이 있으면 `base-diff` 모드에서의 축소 규칙을 반드시 명시
 - `codebase-review/SKILL.md`의 도메인 테이블에 추가
+
+## 긴 세션에서의 지침 유실 (`project build`)
+
+`build`가 한 세션에서 이슈를 연달아 처리하면 **컨텍스트가 길어질수록 지침 준수도가 무너진다.**
+실측: 깨끗한 컨텍스트에서 split을 시키면 원 이슈의 `## 참조`(design-guide 링크)를 3/3 상속하지만,
+실제 burndown 기록에서는 `## 참조` 상속이 **0/15**였고 서브이슈 본문이 시간순으로 581바이트 →
+72바이트까지 단조 감소했다. 얇은 이슈 → 얇은 Coverage Plan → 얇은 구현 → Audit은 그 얇은 R1..Rn만
+검사하므로 정상 통과한다.
+
+그래서 `build.md` 3.5단계가 이슈마다 fresh subagent에 `build-issue.md`를 위임한다. **이 위임을
+"작은 이슈니까"로 우회 가능하게 만들지 마라** — 본문이 72바이트로 줄어든 이슈들도 그때는 작아 보였다.
+
+**두 파일은 역할로 갈렸지 중복이 아니다.** 자격 증명·고객 협의 정책의 전문은 `build-issue.md`에
+있고(구현하는 쪽이 쓴다), `build.md`에는 선정에 필요한 요약만 있다. Rationalization Table도 12(오케
+스트레이터)/8(subagent)로 갈라 두 파일에 나눠 뒀다 — **같은 행을 양쪽에 두지 마라.**
