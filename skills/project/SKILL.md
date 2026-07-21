@@ -1,6 +1,6 @@
 ---
 name: project
-description: Use when bootstrapping a new project from an RFP / 과업지시서 — turning an RFP into PRD·design-guide·CLAUDE.md·README, breaking a PRD into dependency-ordered GitHub issues, reconciling a project's CLAUDE.md/README against the shared skill templates, checking RFP/PRD/design-guide requirements against actual implementation and UI exposure, burning down the GitHub issue backlog fully autonomously (no per-PR merge confirmation), or autonomously looping build→gap→persona-test until the backlog and analyses come back empty. Triggers on "/project setup", "project prd-to-issue", "project sync", "project gap", "project build", "project loop", bare "/project", RFP-to-project bootstrap, implementation gap analysis, autonomous issue backlog processing.
+description: Use when working on a project driven by an RFP / 과업지시서 — bootstrapping it, turning its requirements into issues, reconciling its docs against the shared templates, checking what is actually implemented against them, or burning down its backlog autonomously. Triggers on "/project" and its subcommands (setup, prd-to-issue, sync, gap, build, loop), bare "/project", RFP-to-project bootstrap, implementation gap analysis, autonomous issue backlog processing.
 ---
 
 # project
