@@ -20,7 +20,7 @@
 ### 3. 기술스택·툴체인 확정
 
 - RFP가 스택을 명시하면(예: "SvelteKit 기반") 그대로 채택한다. 명시가 없거나 불완전하면 도메인·요구에 맞게 **결정**한다.
-- 언어·프레임워크만이 아니라 이후 슬롯이 요구하는 세부까지 정한다: 패키지 매니저, ORM/DB, 마이그레이션·시드·테스트 명령 세트, **UI 계층(CSS 프레임워크·컴포넌트 라이브러리)**, **인증/인가 계층**. UI가 있는 제품이면 CSS 프레임워크·컴포넌트 라이브러리를 반드시 확정해 `{{TECH_STACK}}`에 넣는다 — 프레임워크만 적고 스타일링·컴포넌트 계층을 빠뜨리지 마라. 로그인·세션·역할 기반 접근제어(RBAC)가 필요하면 인증 라이브러리도 반드시 확정해 넣는다 — RBAC UX가 design-guide에 있는데 인증 스택이 비면 안 된다. 이 결정이 이후 `{{TECH_STACK}}`·`{{COMMANDS}}`·`{{GETTING_STARTED}}`와 5단계 research question의 `{기술스택}` 근거다.
+- 언어·프레임워크만이 아니라 이후 슬롯이 요구하는 세부까지 정한다: 패키지 매니저, ORM/DB, 마이그레이션·시드·테스트 명령 세트, **UI 계층(CSS 프레임워크·컴포넌트 라이브러리)**, **인증/인가 계층**. UI가 있는 제품이면 CSS 프레임워크·컴포넌트 라이브러리를 반드시 확정해 `{{TECH_STACK}}`에 넣는다 — 프레임워크만 적고 스타일링·컴포넌트 계층을 빠뜨리지 마라. **컴포넌트형 웹 프론트(React/Vue/Svelte 등 컴포넌트 라이브러리를 쓰는 경우)면 컴포넌트·인터랙션 워크샵으로 Storybook을 확정해 `{{TECH_STACK}}`·`{{COMMANDS}}`에 넣는다** — 6단계 인터랙션 규약의 정본 story가 여기 얹힌다. 서버 렌더 템플릿(Jinja·Go template)이거나 비웹이면 Storybook은 넣지 않는다(그 경우 규약은 markdown 결정 표까지만). 로그인·세션·역할 기반 접근제어(RBAC)가 필요하면 인증 라이브러리도 반드시 확정해 넣는다 — RBAC UX가 design-guide에 있는데 인증 스택이 비면 안 된다. 이 결정이 이후 `{{TECH_STACK}}`·`{{COMMANDS}}`·`{{GETTING_STARTED}}`와 5단계 research question의 `{기술스택}` 근거다.
 - 언어가 Python이면(RFP가 다른 웹 프레임워크·ORM·패키지 매니저를 명시하지 않는 한) 웹 프레임워크는 FastAPI, ORM은 SQLAlchemy, 패키지 매니저는 uv를 기본값으로 채택한다.
 - 언어가 Go이면(RFP가 다른 웹 프레임워크·ORM을 명시하지 않는 한) 웹 프레임워크는 Echo, ORM은 GORM을 기본값으로 채택한다.
 - 언어가 JavaScript/TypeScript(Node.js)이면(RFP가 다른 프레임워크·ORM·패키지 매니저를 명시하지 않는 한) 프레임워크는 SvelteKit, ORM은 Drizzle, 패키지 매니저는 bun을 기본값으로 채택한다. 인증이 필요하면 Better Auth를 기본값으로 채택한다(TS-네이티브, Drizzle·SvelteKit과 통합; RFP가 다른 인증 스택을 명시하지 않는 한). SvelteKit에 UI가 있으면 CSS는 Tailwind CSS, 컴포넌트 라이브러리는 shadcn-svelte를 기본값으로 채택한다(RFP가 다른 스타일링·컴포넌트 스택을 명시하지 않는 한). PRD에 복잡한 데이터 테이블/그리드(정렬·필터·페이지네이션·컬럼 제어)가 있으면 TanStack Table을 추가한다(shadcn-svelte data-table이 그 위에 얹혀 있다). 클라이언트 상태 상호작용(낙관적 업데이트·백그라운드 refetch/폴링·페이지 간 클라이언트 캐시·dependent/infinite query)이 있으면 TanStack Query를 추가한다. 단순 페이지 데이터 페칭·라우팅은 SvelteKit `load`/`invalidate`로 충분하므로, 그 수준이면 TanStack Query/Router를 기본 채택하지 않는다.
@@ -70,6 +70,7 @@
   | 내비게이션 | 미저장 변경 시 이탈 경고, 모달은 ESC·바깥클릭 닫기(미저장이면 확인), 취소=변경 폐기 | 뒤로 제스처, 스텝 이탈 경고 | admin과 동일 |
 
   세 성격 어디에도 안 맞으면 기본(admin) 열에서 출발해 무엇을 왜 바꿨는지 근거로 남긴다.
+- **컴포넌트형 웹이면(3단계에서 Storybook을 넣은 경우) 규약을 Storybook 정본 story로 실현한다 — 필수.** markdown 결정 표는 그대로 규칙·근거·임계의 정본으로 두고, 그 위에 각 규약을 담는 정본 컴포넌트마다 **story + play-function 인터랙션 테스트**를 얹어 규약을 실행으로 강제한다(예: 삭제 story는 삭제 클릭 → 확인 다이얼로그 노출을, 필터 story는 입력 후 디바운스 뒤 목록 갱신을 assert). **단 setup 시점엔 코드가 없으므로 story를 만들지 않는다** — design-guide에는 "어떤 정본 story가 무엇을 assert해야 하는지" 목록만 선언한다(부류 → 정본 컴포넌트 → 검증 항목). 실제 story·테스트 부트스트랩은 `build`가 첫 UI를 만들 때 한다. 서버 렌더 템플릿·비웹이면 이 선언을 생략하고 결정 표까지만 둔다.
 - (선택) 메뉴·라우트가 복잡하면 `docs/ia.md`(사이트맵 / 메뉴 정의 / 역할별 진입 / 라우트 구조)도 생성한다.
 
 ### 7. gap 분석 (fresh-eye subagent)
