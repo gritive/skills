@@ -6,7 +6,10 @@
 **새 빌드가능 이슈를 하나도 만들지 못할 때까지** 반복한다.
 
 이 스킬은 자체 구현·분석 로직이 **없다.** `build`/`gap`/`persona-test`를 정해진 순서로 호출하고,
-그 결과로 수렴을 판정할 뿐이다. 무엇을 구현·분석할지는 감싼 세 스킬이 정한다.
+그 결과로 수렴을 판정할 뿐이다. 무엇을 구현·분석할지는 감싼 세 스킬이 정한다. **세 스킬의 무거운
+작업은 모두 fresh subagent가 수행하고, 이 세션은 dispatch와 수렴 회계(실행 큐)만 한다** — `build`는
+이슈마다 자기 subagent에 위임하고(`build.md` 3.5단계), `gap`·`persona-test`는 **loop이 라운드마다
+subagent로 dispatch한다**(Phase B/C). 근거·반환 계약은 아래 "Phase B·C 위임" 절.
 
 ## 입력
 
@@ -84,24 +87,72 @@ build가 끝나면 완료 보고를 읽고 **아래 셋 중 무엇인지 판정�
 **"중단"을 "소진"으로 읽으면 안 된다.** build가 보안 결함에서 멈췄는데 루프가 gap으로 넘어가 새 일감을
 쌓으면, 배포된 취약점을 방치한 채 "일감이 더 있으니 계속"으로 덮어버린다. build가 멈췄으면 루프도 멈춘다.
 
-### Phase B — gap을 이슈로
+### Phase B·C 위임 — gap·persona-test는 fresh subagent가 수행한다
 
-`gritive:project`의 `gap`을 호출한다(= `gap.md` 수행). gap은 이미 문서 대비 gap을 **이슈로 등록하고,
-같은 gap을 다루는 이슈가 있으면 새로 만들지 않는다**(중복 제거 내장). 루프는 gap이 이번에 **새로 만든**
-이슈 중 빌드가능 클래스만 세어 `Ng`로 기록한다(제외 클래스 제외).
+**gap·persona-test의 절차를 이 세션에서 직접 수행하지 않는다.** Phase B·C는 각각 Agent 툴로 subagent를
+1회 dispatch하고, 그 subagent가 해당 스킬 문서를 **Read해서 그대로 수행**한 뒤 아래 반환 계약대로 결과만
+돌려준다. 이 세션은 돌려받은 이슈 번호를 세어 큐 회계(Ng/Np)·수렴만 판정한다.
 
-gap이 이슈 관리 방식을 못 찾아 리포트로 폴백하면, 그건 전제조건 위반이다 — 루프를 멈추고 알린다
+**이유는 `build.md` 3.5단계와 같다.** loop 세션은 라운드가 쌓일수록 build 오케스트레이터 + gap 등록 +
+persona 전체를 인라인으로 호스팅해 **가장 오래 산다.** 긴 컨텍스트에서는 지침 자체가 지켜지지 않는다는
+것이 build에서 실측됐다(서브이슈 본문 581B→72B, `## 참조` 상속 0/15). gap·persona를 이 세션에서
+인라인으로 돌리면 그 열화가 이슈 등록 컨벤션·동일성 키·스크린샷 규율·인터랙션 규약 점검에 그대로 옮고,
+수렴 회계까지 흔든다. **위임을 "이번 라운드는 가벼우니까"로 건너뛰지 마라** — build가 반증한 판단이다.
+
+**subagent에 넘길 것 (Phase 공통):**
+
+- **수행할 스킬 문서의 경로** — gap이면 이 디렉터리의 `gap.md`, persona면 `gritive:persona-test`의
+  `SKILL.md`. subagent는 그 문서를 Read로 직접 읽고 그대로 수행한다. 이 세션이 요약해 넘기지 않는다 —
+  요약이 곧 지침 유실이다.
+- 대상 프로젝트의 `CLAUDE.md` 경로(이슈 관리·문서 라우팅·실행 명령을 subagent가 거기서 읽는다).
+- 현재 작업 디렉터리. subagent는 브랜치를 새로 따거나 바꾸지 않는다.
+- **이 라운드가 loop의 자율 실행임** — 이슈 관리 방식이 전제조건이므로 발견은 항상 이슈로 등록하고,
+  폴백(리포트)이 필요한 상황이면 등록하지 말고 그 사실을 반환하라(전제조건 위반이다).
+
+**gap subagent가 돌려줄 것 (반환 계약):**
+
+| 경우 | 반환 내용 |
+| --- | --- |
+| 분석·등록함 | 만든 이슈 전체(번호·제목·유형) + **그중 빌드가능 클래스 번호 목록**(= Ng, question/credential/에픽/blocked 제외) + 중복이라 안 만든 항목 + (있으면) design-guide 인터랙션 규약 절 부재 경고 |
+| 폴백 필요 | `fallback` + 사유(이슈 관리 방식 없음/gh 미인증). **이슈를 만들지 않았다** |
+
+**persona subagent가 돌려줄 것 (반환 계약):**
+
+| 경우 | 반환 내용 |
+| --- | --- |
+| 테스트함 | `persona_ran=true` + 만든 이슈 전체(번호·제목·분류 Bug/Friction/Gap) + **그중 빌드가능 번호 목록**(= Np) + 동일성 키로 중복 제거해 안 만든 항목 |
+| 기동 실패 | `persona_ran=false` + 서비스 기동 실패 사유. **테스트하지 못했다**(Np=0, 미검증) |
+
+- gap이 `fallback`을 돌려주면 **전제조건 위반이다** — 루프를 멈추고 "이슈 관리 방식이 필요하다"고
+  알린다(이슈가 안 만들어지면 build가 소비할 게 없다).
+- persona가 `persona_ran=false`면 그 라운드는 **미검증**이다 — `Np=0`이지만 수렴 종료(Phase D)의 근거로
+  쓰지 못한다(아래 Phase C·D).
+- **중첩 dispatch 주의**: gap subagent는 `gap.md` 2단계의 "fresh eye subagent" 요구를 **자기 자신으로
+  충족한다** — 이미 fresh subagent이므로 내부에서 또 dispatch하지 않는다(subagent가 subagent를 띄우는
+  것은 막힐 수 있다). persona subagent는 서비스 기동·브라우저 구동을 자기가 직접 한다.
+
+### Phase B — gap을 이슈로 (fresh subagent)
+
+위 "Phase B·C 위임" 절대로 `gap`을 수행할 subagent를 dispatch한다(수행 문서: 이 디렉터리의 `gap.md`).
+gap은 문서 대비 gap을 **이슈로 등록하고, 같은 gap을 다루는 이슈가 있으면 새로 만들지 않는다**(중복 제거
+내장). 루프는 subagent가 돌려준 반환에서 **이번에 새로 만든 빌드가능 이슈**만 세어 `Ng`로 기록한다
+(제외 클래스 제외).
+
+subagent가 `fallback`(이슈 관리 방식 없음/gh 미인증)을 돌려주면 전제조건 위반이다 — 루프를 멈추고 알린다
 (이슈가 안 만들어지면 build가 소비할 게 없다).
 
-### Phase C — persona를 이슈로 (서비스 기동 → 안 되면 스킵+미검증)
+### Phase C — persona를 이슈로 (fresh subagent, 서비스 기동도 subagent가)
 
-1. **서비스 기동을 시도한다.** 대상 `CLAUDE.md`의 실행 명령(또는 `run` 스킬)으로 앱을 띄우고, persona가
-   접근할 인터페이스(web URL/CLI)를 확인한다.
-2. **기동 성공 → `persona-test`를 호출한다**(= `gritive:persona-test`). persona는 발견(Bug/Friction/Gap)을
-   **동일성 키로 중복 제거해 새 것만 이슈로 등록한다**(`persona-test`의 이슈 등록 절차). 루프는 새로 만든
-   빌드가능 이슈를 세어 `Np`로 기록하고, `persona_ran = true`로 표시한다.
-3. **기동 실패(또는 인터페이스 미설정) → persona를 스킵한다.** `Np = 0`, `persona_ran = false`. 그 라운드
-   보고에 **"persona 미검증(서비스 기동 실패: <사유>)"**를 남긴다.
+위 "Phase B·C 위임" 절대로 `persona-test`를 수행할 subagent를 dispatch한다(수행 문서:
+`gritive:persona-test`의 `SKILL.md`). **서비스 기동·브라우저 구동·발견·이슈 등록은 그 subagent가 자기
+컨텍스트에서 직접 한다** — 이 세션은 반환만 읽는다. dispatch 프롬프트에 "먼저 대상 `CLAUDE.md`의 실행
+명령(또는 `run` 스킬)으로 앱을 띄우고 접근 인터페이스(web URL/CLI)를 확인한 뒤 persona-test를 수행하라.
+기동하지 못하면 `persona_ran=false` + 사유로 반환하라"를 명시한다.
+
+- subagent가 `persona_ran=true`를 돌려주면: persona는 발견을 **동일성 키로 중복 제거해 새 것만 이슈로
+  등록했다.** 루프는 새로 만든 빌드가능 이슈를 세어 `Np`로 기록하고 `persona_ran = true`로 표시한다.
+- subagent가 `persona_ran=false`(서비스 기동 실패/인터페이스 미설정)를 돌려주면: `Np = 0`,
+  `persona_ran = false`. 그 라운드 보고에 **"persona 미검증(서비스 기동 실패: <사유>)"**를 남긴다.
 
 **persona가 안 돈 라운드의 "발견 0"은 수렴 신호가 아니다.** 검사를 안 했으므로 "깨끗함"을 증명하지
 못한다. 수렴 종료(Phase D)는 **persona가 실제로 돈 라운드에서만** 선언할 수 있다.
@@ -159,3 +210,7 @@ gap이 이슈 관리 방식을 못 찾아 리포트로 폴백하면, 그건 전�
 - build가 보안 결함/중단 조건으로 멈췄는데 gap/persona로 넘어가려 함 → 루프를 멈춰라
 - `question`·`credential` 이슈를 큐에 넣어 "아직 일감 있음"으로 셈 → 제외 클래스다, 루프의 몫이 아니다
 - 이슈 관리 방식이 없는데 리포트로 폴백해 루프를 돌리려 함 → 전제조건 위반, 멈춰라
+- gap/persona를 이 세션에서 인라인으로 돌려("가벼운 라운드니까") 긴 컨텍스트를 오염 → Phase B·C는
+  fresh subagent에 위임하라. build가 이슈마다 위임하는 것과 같은 이유다
+- gap을 감싼 subagent가 `gap.md` 2단계에서 또 subagent를 dispatch하려 함 → 이미 fresh eye이므로 내부
+  dispatch는 생략한다(중첩 금지)
