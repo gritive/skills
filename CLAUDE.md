@@ -137,7 +137,7 @@ skills / agents / hooks 로만 컨텍스트를 기여하고, `plugin.json`에는
 - 전역 스캔이 필요한 점검 항목이 있으면 `base-diff` 모드에서의 축소 규칙을 반드시 명시
 - `codebase-review/SKILL.md`의 도메인 테이블에 추가
 
-## 긴 세션에서의 지침 유실 (`project build`)
+## 긴 세션에서의 지침 유실 (`project build`, `project loop`)
 
 `build`가 한 세션에서 이슈를 연달아 처리하면 **컨텍스트가 길어질수록 지침 준수도가 무너진다.**
 실측: 깨끗한 컨텍스트에서 split을 시키면 원 이슈의 `## 참조`(design-guide 링크)를 3/3 상속하지만,
@@ -151,3 +151,11 @@ skills / agents / hooks 로만 컨텍스트를 기여하고, `plugin.json`에는
 **두 파일은 역할로 갈렸지 중복이 아니다.** 자격 증명·고객 협의 정책의 전문은 `build-issue.md`에
 있고(구현하는 쪽이 쓴다), `build.md`에는 선정에 필요한 요약만 있다. Rationalization Table도 12(오케
 스트레이터)/8(subagent)로 갈라 두 파일에 나눠 뒀다 — **같은 행을 양쪽에 두지 마라.**
+
+**`loop`도 같은 처방을 쓴다 — 다만 이번엔 `build`가 아니라 loop 세션 자신이 가장 오래 산다.** loop은
+라운드마다 build 오케스트레이터 + gap 등록 + persona 전체를 인라인으로 호스팅하므로 세션이 build보다도
+길어진다. 그래서 `loop.md` Phase B·C는 gap·persona-test를 **라운드마다 fresh subagent에 위임**하고(build가
+이슈마다 위임하는 것과 같은 이유), loop 세션은 dispatch와 큐 회계만 한다. gap은 이미 `gap.md` 2단계에서
+분석을 자기 subagent에 위임하므로, loop이 gap을 감싸면 **중첩 dispatch**가 된다 — `gap.md` 2단계에 "이미
+fresh subagent면 내부 dispatch 생략" 분기를 두어 이를 막았다. 이 위임을 "가벼운 라운드니까"로 우회
+가능하게 만들지 마라 — build에서 반증된 판단이다.
