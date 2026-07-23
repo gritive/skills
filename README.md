@@ -156,7 +156,7 @@ RFP(과업지시서) 한 장에서 프로젝트의 기획·기준 문서와 이�
 | ----------------------- | --------------------------------------------------------------------------- | --------------------------------------------- |
 | `setup`                 | `deep-research` 스킬                                                        | Claude Code 기본 제공                         |
 | `prd-to-issue`, `build` | `gh` CLI (인증된 상태)                                                      | GitHub CLI                                    |
-| `build`                 | `land-and-deploy` (+ 선택적으로 `investigate`, `feature-pipeline`)          | [gstack](https://github.com/gstack-sh/gstack) |
+| `build`                 | `ship`, `land-and-deploy` (+ 선택적으로 `investigate`, `feature-pipeline`)  | [gstack](https://github.com/gstack-sh/gstack) |
 | `loop`                  | `build`·`gap`·`persona-test` + 그 의존 전부, persona용 실행 서비스·브라우저 | 이 플러그인 / 위                              |
 
 의존 대상이 없으면 해당 서브커맨드는 절차를 임의로 재구현하지 않고 중단합니다.
@@ -259,7 +259,11 @@ gritive/
 │       ├── prd-to-issue.md   # PRD → 의존성 순서 GitHub 이슈
 │       ├── sync.md           # 템플릿 backfill (additive-only)
 │       ├── gap.md            # 문서 대비 실제 구현 gap 분석
-│       ├── build.md          # 이슈 백로그 자율 burndown
+│       ├── build.md          # 이슈 백로그 자율 burndown (오케스트레이터 —
+│       │                     #   선정 · 사람 작업 이슈 생성 · /ship 호출 · 머지)
+│       ├── build-issue.md    # 이슈 하나를 맡는 subagent 지침
+│       │                     #   (split · Coverage Plan · 구현 · 검증 · Audit)
+│       ├── loop.md           # build→gap→build→persona-test→build 수렴 루프
 │       └── templates/
 │           ├── CLAUDE.md.template
 │           └── README.md.template
