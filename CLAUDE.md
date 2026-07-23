@@ -10,15 +10,14 @@
 - `skills/review-forever/` — 리뷰 스킬을 감싸 **실행 큐가 빌 때까지** 반복하는 루프 (자체 리뷰 로직 없음)
 - `skills/persona-test/` — 페르소나 기반 서비스 테스트 스킬
 - `skills/project/` — RFP → PRD·이슈 부트스트랩 + 백로그 자율 처리 (6개 서브커맨드 라우터: setup/prd-to-issue/sync/gap/build/loop).
-  `build`는 세 파일이다: `build.md`(오케스트레이터 — 선정·자격증명/question 이슈·머지),
-  `build-issue.md`(subagent — split·Coverage Plan·구현·검증·Audit), `ship-pr.md`(subagent —
-  `/ship` 호출로 커밋·리뷰·PR). 긴 세션에서 지침이 유실되므로 이슈마다 fresh subagent에 위임한다 —
-  아래 "긴 세션에서의 지침 유실" 참조.
-  **`ship-pr.md`(9.5단계)의 목적은 PR이 아니라 리뷰다.** `/ship`의 pre-landing review와 adversarial
-  review가 이 루프의 **유일한 PR 전 코드 리뷰**이고, 10단계 land-and-deploy의 inline review는 그
-  뒤의 두 번째 겹이다. 오케스트레이터가 `gh pr create`를 직접 치면 앞 겹이 통째로 사라진다 —
-  실측으로 재현됐다(개정 전 baseline 3/3이 ship을 부르지 않고 PR을 직접 만들었다). 이 위임을
-  "diff가 작으니까"로 우회 가능하게 만들지 마라.
+  `build`는 두 파일이다: `build.md`(오케스트레이터 — 선정·이슈 생성·**`/ship` 인라인 호출**·머지)와
+  `build-issue.md`(subagent — split·Coverage Plan·구현·검증·Audit). 긴 세션에서 지침이 유실되므로
+  이슈마다 fresh subagent에 위임한다 — 아래 "긴 세션에서의 지침 유실" 참조.
+  **9.5단계의 목적은 PR이 아니라 리뷰다.** `/ship`의 pre-landing review와 adversarial review가 이
+  루프의 **유일한 PR 전 코드 리뷰**이고, 10단계 land-and-deploy의 inline review는 두 번째 겹이다.
+  `gh pr create`를 직접 치면 앞 겹이 사라진다(실측: 개정 전 baseline 3/3이 ship을 안 불렀다).
+  **동시에 `ship`을 subagent에 위임해도 앞 겹이 사라진다** — 아래 "subagent는 subagent를 띄울 수
+  없다" 참조. 인라인 호출만이 두 실패를 동시에 피한다.
   **인터랙션 규약의 정본은 `setup.md` 6단계 하나다** — `sync.md` 4단계는 그 표를 복제하지 않고 읽어서
   쓴다. `build-issue.md`·`gap.md`는 규약 절의 **존재**를 조건으로 삼으므로, 조건이 거짓일 때 조용히
   넘어가지 않고 "`/project sync` 필요"를 보고하는 분기를 반드시 유지한다 — 그 분기가 없으면 규약이
@@ -163,6 +162,25 @@ skills / agents / hooks 로만 컨텍스트를 기여하고, `plugin.json`에는
 시나리오로 회귀를 확인한다 — 이것이 writing-skills의 REFACTOR 국면이다. 실제로 이 방법으로
 "두 겹 리뷰" Rationalization 행이 10단계 본문과 중복임을 확인해 삭제했다(삭제 후 3/3 유지).
 
+## subagent는 subagent를 띄울 수 없다 (위임의 하드 제약)
+
+**실측이다.** subagent 안에서 Agent 툴을 호출하면 `Agent exists but is not enabled in this context`로
+실패한다. 추측이 아니라 확정이며, "막힐 수 있다"로 적지 마라.
+
+그래서 **위임 가능 여부는 "그 문서가 스스로 dispatch하는가"로 갈린다:**
+
+- `build-issue.md`·`gap.md`·`persona-test`는 dispatch하지 않는다 → 위임 가능
+- **`/ship`은 dispatch한다** — Review Army 전문가·Red Team(`sections/review-army.md`), adversarial
+  subagent(`sections/adversarial.md`), document-release(`sections/pr-body.md`)가 전부 Agent 호출이다.
+  ship을 subagent로 보내면 이들이 한 단계 더 깊어져 **전멸하고, ship은 그 실패를 조용히 넘긴다**
+  (`log the failure and continue` / `skip silently and continue`). **ship 위임 = ship 리뷰 끄기.**
+- 같은 이유로 `build` 자체도 위임 불가다 — 3.5단계 위임이 죽는다. `loop.md`가 build를 인라인으로
+  호출하는 것은 실수가 아니라 이 제약의 결과다.
+
+**위임을 검토할 때 컨텍스트 절감만 계산하지 마라. 먼저 "이 문서가 dispatch하는가"를 확인하라.**
+이 함정에 한 번 빠져 릴리스까지 갔다(v0.4.26의 `ship-pr.md` 위임 — 리뷰를 살리려고 만든 단계가
+리뷰를 껐다). 형식이 3.5단계와 똑같아 보인 것이 원인이었다.
+
 ## 긴 세션에서의 지침 유실 (`project build`, `project loop`)
 
 `build`가 한 세션에서 이슈를 연달아 처리하면 **컨텍스트가 길어질수록 지침 준수도가 무너진다.**
@@ -174,11 +192,10 @@ skills / agents / hooks 로만 컨텍스트를 기여하고, `plugin.json`에는
 그래서 `build.md` 3.5단계가 이슈마다 fresh subagent에 `build-issue.md`를 위임한다. **이 위임을
 "작은 이슈니까"로 우회 가능하게 만들지 마라** — 본문이 72바이트로 줄어든 이슈들도 그때는 작아 보였다.
 
-**세 파일은 역할로 갈렸지 중복이 아니다.** 자격 증명·고객 협의 정책의 전문은 `build-issue.md`에
-있고(구현하는 쪽이 쓴다), `build.md`에는 선정에 필요한 요약만 있다. `ship-pr.md`에는 `/ship`의
-질문 처리 정책이 있다. Rationalization Table도 14(오케스트레이터)/8(`build-issue`)/7(`ship-pr`)로
-갈라 세 파일에 나눠 뒀다 — **같은 행을 양쪽에 두지 마라.** 오케스트레이터 쪽 행은 "위임할지"를,
-subagent 쪽 행은 "위임받고 무엇을 할지"를 다룬다.
+**두 파일은 역할로 갈렸지 중복이 아니다.** 자격 증명·고객 협의 정책의 전문은 `build-issue.md`에
+있고(구현하는 쪽이 쓴다), `build.md`에는 선정에 필요한 요약과 `/ship` 질문 처리 정책이 있다.
+Rationalization Table도 15(오케스트레이터)/8(`build-issue`)로 갈라 나눠 뒀다 — **같은 행을 양쪽에
+두지 마라.**
 
 **`loop`도 같은 처방을 쓴다 — 다만 이번엔 `build`가 아니라 loop 세션 자신이 가장 오래 산다.** loop은
 라운드마다 build 오케스트레이터 + gap 등록 + persona 전체를 인라인으로 호스팅하므로 세션이 build보다도

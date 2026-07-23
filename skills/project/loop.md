@@ -6,10 +6,15 @@
 **새 빌드가능 이슈를 하나도 만들지 못할 때까지** 반복한다.
 
 이 스킬은 자체 구현·분석 로직이 **없다.** `build`/`gap`/`persona-test`를 정해진 순서로 호출하고,
-그 결과로 수렴을 판정할 뿐이다. 무엇을 구현·분석할지는 감싼 세 스킬이 정한다. **세 스킬의 무거운
-작업은 모두 fresh subagent가 수행하고, 이 세션은 dispatch와 수렴 회계(실행 큐)만 한다** — `build`는
-이슈마다 자기 subagent에 위임하고(`build.md` 3.5단계), `gap`·`persona-test`는 **loop이 라운드마다
-subagent로 dispatch한다**(Phase B/C). 근거·반환 계약은 아래 "Phase B·C 위임" 절.
+그 결과로 수렴을 판정할 뿐이다. 무엇을 구현·분석할지는 감싼 세 스킬이 정한다.
+
+**`gap`·`persona-test`는 loop이 라운드마다 subagent로 dispatch한다**(Phase B/C, 근거·반환 계약은
+아래 "Phase B·C 위임" 절). **반면 `build`는 이 세션에서 인라인으로 호출한다 — 위임할 수 없기
+때문이다.** build는 이슈마다 `build-issue.md`를 dispatch하고(3.5단계) `/ship`도 dispatch에 의존하는데,
+subagent 안에서는 Agent 툴이 비활성이라 그 dispatch들이 전부 죽는다. 그래서 **이 세션에는 build
+오케스트레이터와 `land-and-deploy`가 인라인으로 남는다** — loop 세션의 최대 컨텍스트 소비자는
+gap·persona가 아니라 이쪽이고, 그건 제약이지 고칠 수 있는 결함이 아니다. 라운드 상한을 크게 잡을
+때 이 점을 감안하라.
 
 ## 입력
 
@@ -128,8 +133,8 @@ persona 전체를 인라인으로 호스팅해 **가장 오래 산다.** 긴 컨
 - persona가 `persona_ran=false`면 그 라운드는 **미검증**이다 — `Np=0`이지만 수렴 종료(Phase D)의 근거로
   쓰지 못한다(아래 Phase C·D).
 - **중첩 dispatch 주의**: gap subagent는 `gap.md` 2단계의 "fresh eye subagent" 요구를 **자기 자신으로
-  충족한다** — 이미 fresh subagent이므로 내부에서 또 dispatch하지 않는다(subagent가 subagent를 띄우는
-  것은 막힐 수 있다). persona subagent는 서비스 기동·브라우저 구동을 자기가 직접 한다.
+  충족한다** — 이미 fresh subagent이므로 내부에서 또 dispatch하지 않는다 — subagent 안에서는 Agent
+  툴이 비활성이라 **반드시 실패한다**(`Agent exists but is not enabled in this context`). persona subagent는 서비스 기동·브라우저 구동을 자기가 직접 한다.
 
 ### Phase B — gap을 이슈로 (fresh subagent)
 
