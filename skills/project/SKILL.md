@@ -49,6 +49,7 @@ RFP 한 장에서 프로젝트의 기획 문서·기준 문서·이슈를 부트
 | ----------------------- | ------------------------------------------------------------------- | --------------------------------------------- |
 | `setup`                 | `deep-research` 스킬                                                | Claude Code 기본 제공                         |
 | `prd-to-issue`, `build` | `gh` CLI (인증된 상태)                                              | GitHub CLI                                    |
+| `build`                 | `ship` 스킬 (9.5단계 — PR 전 리뷰)                                  | [gstack](https://github.com/gstack-sh/gstack) |
 | `build`                 | `land-and-deploy` 스킬                                              | [gstack](https://github.com/gstack-sh/gstack) |
 | `build`                 | `investigate`, `feature-pipeline` (구현 위임 시, 선택)              | gstack                                        |
 | `loop`                  | `build`·`gap`·`persona-test` 서브스킬 전부 + 그것들의 의존(위 전부) | 이 플러그인 / 위                              |
@@ -56,7 +57,8 @@ RFP 한 장에서 프로젝트의 기획 문서·기준 문서·이슈를 부트
 
 **의존 대상이 없으면 그 서브커맨드를 흉내 내지 말고 멈춘다.** 예를 들어 `build`가 `land-and-deploy`를
 찾지 못하면, 머지·배포 절차를 임의로 재구현하지 말고 "gstack의 `land-and-deploy`가 필요하다"고
-알리고 중단한다. 자율 머지 루프에서 게이트를 자체 구현하는 것은 위험하다.
+알리고 중단한다. 자율 머지 루프에서 게이트를 자체 구현하는 것은 위험하다. `ship`도 마찬가지다 —
+없다고 `gh pr create`로 때우면 이 루프의 **유일한 PR 전 코드 리뷰**가 사라진다.
 
 `gap`은 Agent 툴만 쓰므로 추가 의존이 없다. `sync`는 이 스킬 디렉터리의 `templates/`와 `setup.md`
 6단계(인터랙션 규약 baseline의 정본)를 읽는다 — 그 표를 `sync.md`에 복제하지 않는다.
