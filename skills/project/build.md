@@ -115,6 +115,8 @@
 - **`build-issue.md`의 경로**(이 스킬 디렉터리에 함께 있다). subagent는 그 문서를 **Read로 직접 읽고
   그대로 수행한다** — 이 세션이 요약해서 넘기지 않는다. 요약이 곧 지침 유실이다.
   이 문서(`build.md`)는 넘기지 않는다 — 선정·PR·머지는 subagent의 일이 아니다
+- **아래 반환 계약 표**. 이것만은 그대로 붙여 넘긴다 — `build.md`를 안 넘기므로 이걸 빼면 subagent는
+  자기가 무엇을 돌려줘야 하는지 모르는 채 아래 게이트에 걸린다
 - 대상 프로젝트의 `CLAUDE.md` 경로와, 0단계에서 확인한 보드 연결 커맨드·의존 표기 컨벤션
 - 현재 작업 브랜치명 (0단계에서 딴 것). subagent는 브랜치를 새로 따거나 바꾸지 않는다
 
@@ -142,14 +144,14 @@
 이슈 하나의 split 판정·Coverage Plan·구현·검증·Audit은 이 문서에 없다. 3.5단계에서 dispatch된
 subagent가 **`build-issue.md`를 Read해서** 수행하고, 위 반환 계약대로 결과를 돌려준다.
 
-### 9. 커밋 → PR (자격 증명 fail-fast면 자격 증명 이슈 먼저)
+### 9. PR 전 사람 작업 이슈 분리 (자격 증명 / 스펙 결정 / Hollow 추적)
 
 > 9단계부터는 다시 **오케스트레이터 세션이 수행한다.** 아래 "Coverage"는 3.5단계에서 subagent가
 > 돌려준 Coverage Plan·Audit을 가리킨다.
 
 **subagent가 돌려준 "이슈가 필요한 항목 목록"을 PR 생성 전에 이슈로 만든다.** 종류마다 **원 이슈당
-하나**씩 묶는다(대상이 여럿이면 본문에 나열). subagent는 이슈를 만들지 않는다 — 중복 확인과 보드 연결이
-여기 있기 때문이다.
+하나**씩 묶는다(대상이 여럿이면 본문에 나열). **이 세 종류는** subagent가 만들지 않는다 — 중복 확인과
+보드 연결이 여기 있기 때문이다(split 서브이슈·무관 버그 이슈는 subagent가 만든다).
 
 **세 종류 공통:**
 
@@ -196,9 +198,9 @@ not enabled in this context`) ship의 리뷰어는 전부 Agent dispatch다 — 
 보고에 "범위 밖 발견"으로 남긴다.
 
 **PR 본문에 다음이 누락 없이 들어가야 한다** — ship의 본문 형식을 쓰되 이것들을 채운다:
-`Closes #N`(split이면 실제 완료한 서브이슈만) / 변경 요약 / **8단계 Coverage Audit 표** /
-**7단계 검증 명령과 실제 출력**(주장이 아니라 출력이다) / 남은 항목 없음 또는 split·blocked 사유 /
-(있으면) 9단계에서 만든 이슈 번호와 그 표의 "PR 본문에 남길 문장".
+`Closes #N` / 변경 요약 / **8단계 Coverage Audit 표** / **7단계 검증 명령과 실제 출력**(주장이 아니라
+출력이다) / 남은 항목 없음 / (있으면) 9단계에서 만든 이슈 번호와 그 표의 "PR 본문에 남길 문장".
+여기 오는 것은 `implemented`이고 Audit에 `not done`/`blocked`가 없다 — split·blocked 분기는 없다.
 
 **리뷰 결과 판정은 "리뷰 게이트" 절의 규칙대로 한다.** `ship` 재호출은 idempotent다 — 이미 한 행동은 건너뛰고
 검증만 다시 돈다.
@@ -237,8 +239,9 @@ PR이 실제 merged 상태인지(`gh pr view <N> --json state,mergedAt`) 확인�
 그 목록은 `build-issue.md`에 있다 — 여기 복제하지 않는다.
 
 - **subagent가 `stopped`를 돌려준 경우** (3.5단계)
-- **"리뷰 게이트" 절이 정한 조건** — 어느 겹이든 CRITICAL/HIGH·보안 범주 결함, `ship`이 낸
-  ASK·Greptile 항목 중 같은 범주, `ship` 재호출 후에도 **리뷰 미실행**("0건"이 아니라 "안 돌림")
+- **"리뷰 게이트" 절이 정한 조건** — 어느 겹이든 CRITICAL/HIGH·보안 범주 결함, `ship` 재호출 후에도
+  **리뷰 미실행**("0건"이 아니라 "안 돌림"). `ship`이 낸 ASK·Greptile 항목 중 같은 범주도 여기 속한다
+  (9.5단계 규칙 1)
 - 9.5단계의 커버리지 게이트 미달, plan NOT DONE·검증 실패
 - **Coverage Audit 표 없이 `implemented`**가 두 번 연속 온 경우(3.5단계)
 - merge 실패 / PR closed without merge, deploy 실패, production health 이슈, permission denied
