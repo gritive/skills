@@ -18,10 +18,10 @@
 
 - Agent 툴로 새 subagent를 dispatch한다. **이 단계를 생략하고 현재 대화 맥락에서 바로 분석하지 않는다.**
 - **단, 이미 fresh subagent로 실행 중이면(예: `project loop`이 gap을 subagent로 dispatch한 경우) 이 세션이
-  곧 fresh eye다 — 내부에서 또 dispatch하지 말고 아래 다섯 항목을 직접 수행한다.** 중첩 dispatch를 만들지
-  않는다 — subagent 안에서는 Agent 툴이 비활성이라 **반드시 실패한다**(`Agent exists but is not
-  enabled in this context`). 추측이 아니라 실측이다. fresh eye의 목적은 호출자의 누적 선입견을 피하는
-  것인데, loop이 이미 새 컨텍스트로 띄웠으므로 그 목적은 이미 충족됐다.
+  곧 fresh eye다 — 내부에서 또 dispatch하지 말고 아래 다섯 항목을 직접 수행한다.** 중첩 dispatch 자체는
+  되지만 **깊이 예산**(main 아래 기본 3겹, 사용자가 `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`로 더 낮출 수
+  있다)만 쓰고 얻는 게 없다. fresh eye의 목적은 호출자의 누적 선입견을 피하는 것인데, loop이 이미 새
+  컨텍스트로 띄웠으므로 그 목적은 이미 충족됐다.
 - 이유: 진행 중인 세션에는 이전 세션 요약, CLAUDE.md/README의 "구현 완료" 자체 서술 같은 선입견이 이미 쌓여 있다. 같은 컨텍스트에서 이어서 분석하면 그 선입견을 그대로 따라가 실제로는 미완성인 부분을 완료로 오판하기 쉽다. 사전 지식 없는 새 subagent가 처음부터 코드를 읽게 한다.
 - subagent 프롬프트에 반드시 아래 다섯 가지를 명시한다:
   1. RFP → PRD → design-guide(+UX 가이드) 순으로 읽고, 각 문서가 요구하는 기능/요구사항을 **빠짐없이** 항목화한다. 눈에 띄는 몇 개만 골라 확인하지 않는다.

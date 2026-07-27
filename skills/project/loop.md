@@ -133,8 +133,9 @@ persona 전체를 인라인으로 호스팅해 **가장 오래 산다.** 긴 컨
 - persona가 `persona_ran=false`면 그 라운드는 **미검증**이다 — `Np=0`이지만 수렴 종료(Phase D)의 근거로
   쓰지 못한다(아래 Phase C·D).
 - **중첩 dispatch 주의**: gap subagent는 `gap.md` 2단계의 "fresh eye subagent" 요구를 **자기 자신으로
-  충족한다** — 이미 fresh subagent이므로 내부에서 또 dispatch하지 않는다 — subagent 안에서는 Agent
-  툴이 비활성이라 **반드시 실패한다**(`Agent exists but is not enabled in this context`). persona subagent는 서비스 기동·브라우저 구동을 자기가 직접 한다.
+  충족한다** — 이미 fresh subagent이므로 내부에서 또 dispatch하지 않는다. 중첩 dispatch 자체는 되지만
+  **깊이 예산**(main 아래 기본 3겹, 사용자가 `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`로 더 낮출 수 있다)만
+  쓰고 얻는 게 없다. persona subagent는 서비스 기동·브라우저 구동을 자기가 직접 한다.
 
 ### Phase B — gap을 이슈로 (fresh subagent)
 
