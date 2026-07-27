@@ -1,6 +1,6 @@
 # project setup
 
-`/project setup <RFP-path>` — RFP 한 장에서 프로젝트의 기획·기준 문서를 생성한다. `deep-research` 스킬과 fresh-eye subagent(7단계)를 **오케스트레이션**한다. 연구 루프나 gap 분석을 여기서 재구현하지 않는다.
+`/project setup <RFP-path>` — RFP 한 장에서 프로젝트의 기획·기준 문서를 생성한다. 리서치 subagent(2·5단계)와 fresh-eye subagent(7단계)를 **오케스트레이션**한다. 이 세션에서 직접 웹을 뒤지거나 gap 분석을 재구현하지 않는다.
 
 ## 입력
 
@@ -12,10 +12,11 @@
 
 - RFP를 Read로 읽고 도메인·목표·주요 요구·제약을 파악한다.
 
-### 2. deep-research #1 — 도메인/시장/베스트프랙티스
+### 2. research #1 — 도메인/시장/베스트프랙티스
 
-- **`deep-research`**을 호출한다(추가 설치 불필요). research question 예: "{도메인} 서비스의 표준 기능 범위, 경쟁 제품, 데이터 모델 관례, 운영 워크플로우 베스트프랙티스는?"
-- 결과를 `docs/research/domain-research.md`로 저장(디렉터리 없으면 생성).
+- Agent 툴로 리서치 subagent 1회 dispatch한다. research question 예: "{도메인} 서비스의 표준 기능 범위, 경쟁 제품, 데이터 모델 관례, 운영 워크플로우 베스트프랙티스는?"
+- 프롬프트 규약: `WebSearch`·`WebFetch`로 근거를 모으고 **항목마다 출처 URL을 단** 마크다운 요약을 **반환 텍스트로만** 돌려준다(파일을 쓰지 않는다). 웹 접근이 없으면 그 사실을 머리에 밝히고 근거 없는 항목을 지어내지 않는다.
+- 반환받은 요약을 `docs/research/domain-research.md`로 저장(디렉터리 없으면 생성). 웹 접근이 없었으면 그 사실을 노트 머리에 남긴다 — 이후 단계의 신뢰도 표기가 `[소스]`가 아니라 `[관례]`인 근거다.
 
 ### 3. 기술스택·툴체인 확정
 
@@ -37,9 +38,9 @@
   6. 데이터 모델 개요
   7. 결정 사항 — 채택 스택(3단계)과 미확정 이슈(`Q1..Qn`)를 기록한다
 
-### 5. deep-research #2 — 디자인/UX
+### 5. research #2 — 디자인/UX
 
-- `deep-research`를 다시 호출한다. research question 예: "{제품 유형}의 데이터 테이블/폼/대시보드/RBAC UX 베스트프랙티스, **이 제품 성격에서 6단계 인터랙션 baseline을 벗어나는 관례**(예: 페이지네이션 vs 무한스크롤, 필터 라이브 vs 적용 버튼, 삭제 확인 vs undo 중 이 도메인이 다르게 하는 것), {기술스택} 컴포넌트 매핑, WCAG AA 기준은?"
+- 2단계와 같은 규약으로 리서치 subagent를 1회 더 dispatch한다. research question 예: "{제품 유형}의 데이터 테이블/폼/대시보드/RBAC UX 베스트프랙티스, **이 제품 성격에서 6단계 인터랙션 baseline을 벗어나는 관례**(예: 페이지네이션 vs 무한스크롤, 필터 라이브 vs 적용 버튼, 삭제 확인 vs undo 중 이 도메인이 다르게 하는 것), {기술스택} 컴포넌트 매핑, WCAG AA 기준은?"
 - 인터랙션 규약 자체는 6단계 baseline에서 결정한다. 이 리서치는 그 baseline을 **조정할 근거**(제품 성격 특유의 관례·라이브러리 지원 패턴)를 대는 용도다 — 규약을 처음부터 리서치로 만들지 않는다.
 - 결과를 `docs/research/design-research.md`로 저장.
 

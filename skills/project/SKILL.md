@@ -11,7 +11,7 @@ RFP 한 장에서 프로젝트의 기획 문서·기준 문서·이슈를 부트
 
 | 첫 인자            | 하는 일                                                                                                                                     | 지침 파일         |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| `setup <RFP-path>` | RFP → deep-research → PRD → design/UX 가이드 → gap 보강 → CLAUDE.md/README 생성                                                             | `setup.md`        |
+| `setup <RFP-path>` | RFP → 리서치 → PRD → design/UX 가이드 → gap 보강 → CLAUDE.md/README 생성                                                             | `setup.md`        |
 | `prd-to-issue`     | PRD를 에픽으로 분해해 의존성 순서로 GitHub 이슈 생성                                                                                        | `prd-to-issue.md` |
 | `sync`             | 공유 baseline 대비 프로젝트 CLAUDE.md + design-guide 인터랙션 규약의 누락분 보강 (additive-only)                                            | `sync.md`         |
 | `gap`              | RFP·PRD·design/UX 가이드 대비 **실제 구현**의 gap을 fresh eye로 분석하고, 구현된 기능의 UI 노출 여부까지 확인                               | `gap.md`          |
@@ -47,7 +47,6 @@ RFP 한 장에서 프로젝트의 기획 문서·기준 문서·이슈를 부트
 
 | 서브커맨드              | 의존 대상                                                           | 출처                                          |
 | ----------------------- | ------------------------------------------------------------------- | --------------------------------------------- |
-| `setup`                 | `deep-research` 스킬                                                | Claude Code 기본 제공                         |
 | `prd-to-issue`, `build` | `gh` CLI (인증된 상태)                                              | GitHub CLI                                    |
 | `build`                 | `ship` 스킬 (9.5단계 — PR 전 리뷰)                                  | [gstack](https://github.com/gstack-sh/gstack) |
 | `build`                 | `land-and-deploy` 스킬                                              | [gstack](https://github.com/gstack-sh/gstack) |
