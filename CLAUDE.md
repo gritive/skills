@@ -18,8 +18,7 @@
   ship이 `gstack-review-log`로 리뷰를 남기므로 정상 경로에서는 CURRENT로 잡혀 10단계 리뷰는 돌지 않는다.
   이를 "두 겹"으로 적으면 에이전트가 질문이 안 온 것을 구멍으로 읽고 리뷰를 한 번 더 돌린다(실측 1/2).
   `gh pr create`를 직접 치면 그 한 겹이 사라진다(실측: 개정 전 baseline 3/3이 ship을 안 불렀다).
-  **동시에 `ship`을 subagent에 위임해도 앞 겹이 사라진다** — 아래 "subagent는 subagent를 띄울 수
-  없다" 참조. 인라인 호출만이 두 실패를 동시에 피한다.
+  **동시에 `ship`을 subagent에 위임해도 앞 겹이 사라진다** — 아래 "subagent 위임의 하드 제약" 참조. 인라인 호출만이 두 실패를 동시에 피한다.
   **인터랙션 규약의 정본은 `setup.md` 6단계 하나다** — `sync.md` 4단계는 그 표를 복제하지 않고 읽어서
   쓴다. `build-issue.md`·`gap.md`는 규약 절의 **존재**를 조건으로 삼으므로, 조건이 거짓일 때 조용히
   넘어가지 않고 "`/project sync` 필요"를 보고하는 분기를 반드시 유지한다 — 그 분기가 없으면 규약이
@@ -173,24 +172,51 @@ skills / agents / hooks 로만 컨텍스트를 기여하고, `plugin.json`에는
 시나리오로 회귀를 확인한다 — 이것이 writing-skills의 REFACTOR 국면이다. 실제로 이 방법으로
 "두 겹 리뷰" Rationalization 행이 10단계 본문과 중복임을 확인해 삭제했다(삭제 후 3/3 유지).
 
-## subagent는 subagent를 띄울 수 없다 (위임의 하드 제약)
+## subagent 위임의 하드 제약 — 사용자 질문과 깊이 예산
 
-**실측이다.** subagent 안에서 Agent 툴을 호출하면 `Agent exists but is not enabled in this context`로
-실패한다. 추측이 아니라 확정이며, "막힐 수 있다"로 적지 마라.
+**"subagent는 subagent를 띄울 수 없다"는 옛 규칙은 폐기됐다.** 2026-07-28 실측(Claude Code 2.1.220):
+main → L1 → L2 → L3까지 Agent dispatch가 전부 성공했다. 문서도 같은 말을 한다 — 기본 깊이 상한은 main
+아래 **3겹**이고 상한에 닿은 subagent에서만 Agent 툴이 회수된다([sub-agents](https://code.claude.com/docs/en/sub-agents#let-subagents-spawn-their-own-subagents)).
+상한은 `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`로 **더 낮출 수 있다**(v2.1.217+).
 
-그래서 **위임 가능 여부는 "그 문서가 스스로 dispatch하는가"로 갈린다:**
+**그래도 위임 판단은 하나도 안 바뀐다 — 근거만 바뀐다.** 진짜 제약은 둘이다:
 
-- `build-issue.md`·`gap.md`·`persona-test`는 dispatch하지 않는다 → 위임 가능
-- **`/ship`은 dispatch한다** — Review Army 전문가·Red Team(`sections/review-army.md`), adversarial
-  subagent(`sections/adversarial.md`), document-release(`sections/pr-body.md`)가 전부 Agent 호출이다.
-  ship을 subagent로 보내면 이들이 한 단계 더 깊어져 **전멸하고, ship은 그 실패를 조용히 넘긴다**
-  (`log the failure and continue` / `skip silently and continue`). **ship 위임 = ship 리뷰 끄기.**
-- 같은 이유로 `build` 자체도 위임 불가다 — 3.5단계 위임이 죽는다. `loop.md`가 build를 인라인으로
-  호출하는 것은 실수가 아니라 이 제약의 결과다.
+1. **subagent에는 `AskUserQuestion`이 없다**(실측: Claude Code 2.1.220, L1). 깊이별로 따로 재지는
+   않았으므로 "모든 깊이에서"라고 단정하지 마라 — 필요한 결론에는 L1만으로 충분하다. 위임한 문서의
+   질문은 **사용자에게 도달하지 않는다.**
+2. **깊이 예산은 유한하고 사용자가 더 줄일 수 있다.** 3겹이 성립하는 것에 **의존하는 설계를 하지 마라** —
+   상한을 1로 잡은 사용자에게서 조용히 죽는다.
 
-**위임을 검토할 때 컨텍스트 절감만 계산하지 마라. 먼저 "이 문서가 dispatch하는가"를 확인하라.**
+**판정 기준은 "묻는가"가 아니라 "그 질문이 게이트인가"다.** 묻는 문서는 흔하다. 갈리는 것은 답을
+못 받았을 때다:
+
+- **게이트 질문** — 답이 없으면 진행하면 안 되는 질문. 위임하면 사용자에게 닿지 않고, 그 다음은
+  둘 중 하나다: 호출자가 답을 지어내거나, 조용히 넘어가거나. **어느 쪽이든 게이트는 꺼진다.**
+- **강등 가능한 질문** — 답이 없을 때 **문서에 명시된 열화 경로**가 있는 질문(관례 경로 시도,
+  파일 대신 대화 리포트). 위임해도 게이트가 죽지 않는다. 단 열화 경로가 **문서에 적혀 있어야**
+  한다 — 없으면 그건 강등이 아니라 즉흥이다.
+
+그래서:
+
+- **`/ship`은 여전히 위임 불가다.** ship의 리뷰 게이트 질문은 `build.md` 9.5단계가 답을 판정하는
+  **게이트 질문**인데, subagent에는 `AskUserQuestion`이 없어 사용자에게 닿지 않는다. ship 자신은
+  질문이 불가능할 때 prose로 옮겨 적고 멈추도록 돼 있으나, subagent 안에서 그 prose는 사용자가 아니라
+  **호출자에게 반환될 뿐**이고 9.5단계는 그것을 답으로 읽는다. **ship 위임 = 게이트 끄기.**
+  여기에 ship의 리뷰어(Review Army `sections/review-army.md`, adversarial `sections/adversarial.md`,
+  document-release `sections/pr-body.md`)가 전부 dispatch라 깊이 예산까지 먹는다.
+- 같은 이유로 `build` 자체도 위임 불가다 — build는 ship과 `land-and-deploy`의 확인 질문을 받아 답한다.
+  `loop.md`가 build를 인라인으로 호출하는 것은 실수가 아니라 이 제약의 결과다.
+- `build-issue.md`는 묻지 않는다 → 위임 가능.
+- **`gap.md`·`persona-test`는 묻지만 그 질문이 전부 강등 가능하다** → 위임 가능(현행 유지).
+  근거 문서 경로(`gap.md` 1단계)는 관례 경로로, 파일 저장 여부(`gap.md` 폴백 / `persona-test`
+  완료 보고)는 "묻지 못하면 저장하지 않는다"로, 인터페이스 선택(`persona-test`)은 감지된 것 전부로
+  강등된다. **이 열화 경로들이 두 문서에 명시돼 있어야 이 분류가 성립한다** — 지우지 마라.
+  강등한 사실은 반환 계약의 `degraded` 항목으로 호출자에게 올린다(`loop.md` Phase B·C).
+
+**위임을 검토할 때 컨텍스트 절감만 계산하지 마라. 먼저 "이 문서의 질문이 게이트인가"를 확인하라.**
 이 함정에 한 번 빠져 릴리스까지 갔다(v0.4.26의 `ship-pr.md` 위임 — 리뷰를 살리려고 만든 단계가
-리뷰를 껐다). 형식이 3.5단계와 똑같아 보인 것이 원인이었다.
+리뷰를 껐다. `9c2000a`로 되돌렸다). **그때 적었던 근거는 지금 틀렸지만 결론은 그대로 유효하다 —
+"근거가 낡았으니 위임해도 된다"로 읽지 마라.**
 
 ## 긴 세션에서의 지침 유실 (`project build`, `project loop`)
 

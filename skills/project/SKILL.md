@@ -11,7 +11,7 @@ RFP 한 장에서 프로젝트의 기획 문서·기준 문서·이슈를 부트
 
 | 첫 인자            | 하는 일                                                                                                                                     | 지침 파일         |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| `setup <RFP-path>` | RFP → deep-research → PRD → design/UX 가이드 → gap 보강 → CLAUDE.md/README 생성                                                             | `setup.md`        |
+| `setup <RFP-path>` | RFP → 리서치 → PRD → design/UX 가이드 → gap 보강 → CLAUDE.md/README 생성                                                             | `setup.md`        |
 | `prd-to-issue`     | PRD를 에픽으로 분해해 의존성 순서로 GitHub 이슈 생성                                                                                        | `prd-to-issue.md` |
 | `sync`             | 공유 baseline 대비 프로젝트 CLAUDE.md + design-guide 인터랙션 규약의 누락분 보강 (additive-only)                                            | `sync.md`         |
 | `gap`              | RFP·PRD·design/UX 가이드 대비 **실제 구현**의 gap을 fresh eye로 분석하고, 구현된 기능의 UI 노출 여부까지 확인                               | `gap.md`          |
@@ -47,7 +47,8 @@ RFP 한 장에서 프로젝트의 기획 문서·기준 문서·이슈를 부트
 
 | 서브커맨드              | 의존 대상                                                           | 출처                                          |
 | ----------------------- | ------------------------------------------------------------------- | --------------------------------------------- |
-| `setup`                 | `deep-research` 스킬                                                | Claude Code 기본 제공                         |
+| `setup`                 | Agent 툴 + `general-purpose` (2·5단계 리서치 dispatch. **없으면 중단**) | Claude Code 기본 제공                       |
+| `setup`                 | 그 subagent의 `WebSearch`·`WebFetch` (**없으면 중단이 아니라 강등**)   | Claude Code 기본 제공                       |
 | `prd-to-issue`, `build` | `gh` CLI (인증된 상태)                                              | GitHub CLI                                    |
 | `build`                 | `ship` 스킬 (9.5단계 — PR 전 리뷰)                                  | [gstack](https://github.com/gstack-sh/gstack) |
 | `build`                 | `land-and-deploy` 스킬                                              | [gstack](https://github.com/gstack-sh/gstack) |
@@ -59,6 +60,10 @@ RFP 한 장에서 프로젝트의 기획 문서·기준 문서·이슈를 부트
 찾지 못하면, 머지·배포 절차를 임의로 재구현하지 말고 "gstack의 `land-and-deploy`가 필요하다"고
 알리고 중단한다. 자율 머지 루프에서 게이트를 자체 구현하는 것은 위험하다. `ship`도 마찬가지다 —
 없다고 `gh pr create`로 때우면 이 루프의 **유일한 PR 전 코드 리뷰**가 사라진다.
+
+**`setup`의 웹 툴만 예외다 — 없어도 멈추지 않고 강등한다.** 리서치 노트 머리에 웹 접근이 없었다고
+밝히고, 이후 문서의 신뢰도 표기를 `[소스]`가 아니라 `[관례]`로 단다(`setup.md` 2단계). 근거 없는
+항목을 지어내는 것은 강등이 아니라 위반이다.
 
 `gap`은 Agent 툴만 쓰므로 추가 의존이 없다. `sync`는 이 스킬 디렉터리의 `templates/`와 `setup.md`
 6단계(인터랙션 규약 baseline의 정본)를 읽는다 — 그 표를 `sync.md`에 복제하지 않는다.
