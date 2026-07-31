@@ -154,6 +154,7 @@ RFP(과업지시서) 한 장에서 프로젝트의 기획·기준 문서와 이�
 
 | 서브커맨드              | 의존 대상                                                                   | 출처                                          |
 | ----------------------- | --------------------------------------------------------------------------- | --------------------------------------------- |
+| `setup`                 | `WebSearch`·`WebFetch` (2·5단계 리서치. 없으면 중단이 아니라 강등)          | Claude Code 기본 제공                         |
 | `prd-to-issue`, `build` | `gh` CLI (인증된 상태)                                                      | GitHub CLI                                    |
 | `build`                 | `ship`, `land-and-deploy` (+ 선택적으로 `investigate`, `feature-pipeline`)  | [gstack](https://github.com/gstack-sh/gstack) |
 | `loop`                  | `build`·`gap`·`persona-test` + 그 의존 전부, persona용 실행 서비스·브라우저 | 이 플러그인 / 위                              |

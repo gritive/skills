@@ -10,8 +10,11 @@
 
 **`gap`·`persona-test`는 loop이 라운드마다 subagent로 dispatch한다**(Phase B/C, 근거·반환 계약은
 아래 "Phase B·C 위임" 절). **반면 `build`는 이 세션에서 인라인으로 호출한다 — 위임할 수 없기
-때문이다.** build는 이슈마다 `build-issue.md`를 dispatch하고(3.5단계) `/ship`도 dispatch에 의존하는데,
-subagent 안에서는 Agent 툴이 비활성이라 그 dispatch들이 전부 죽는다. 그래서 **이 세션에는 build
+때문이다.** build는 `/ship`·`land-and-deploy`의 확인 질문을 받아 답하는데, subagent에는
+`AskUserQuestion`이 없어(깊이와 무관하게 전부 제거된다) **질문 자체가 안 뜨고 ship은 그 실패를
+조용히 넘긴다** — 리뷰 게이트가 꺼진 줄도 모르고 통과한다. ship의 리뷰어가 전부 Agent dispatch라
+깊이 예산까지 먹는 것은 부차적 근거다. **중첩 dispatch가 되는 것을 확인했더라도 "그러니 위임해도
+된다"로 읽지 마라** — 막는 것은 dispatch가 아니라 질문이다. 그래서 **이 세션에는 build
 오케스트레이터와 `land-and-deploy`가 인라인으로 남는다** — loop 세션의 최대 컨텍스트 소비자는
 gap·persona가 아니라 이쪽이고, 그건 제약이지 고칠 수 있는 결함이 아니다. 라운드 상한을 크게 잡을
 때 이 점을 감안하라.
@@ -133,9 +136,8 @@ persona 전체를 인라인으로 호스팅해 **가장 오래 산다.** 긴 컨
 - persona가 `persona_ran=false`면 그 라운드는 **미검증**이다 — `Np=0`이지만 수렴 종료(Phase D)의 근거로
   쓰지 못한다(아래 Phase C·D).
 - **중첩 dispatch 주의**: gap subagent는 `gap.md` 2단계의 "fresh eye subagent" 요구를 **자기 자신으로
-  충족한다** — 이미 fresh subagent이므로 내부에서 또 dispatch하지 않는다. 중첩 dispatch 자체는 되지만
-  **깊이 예산**(main 아래 기본 3겹, 사용자가 `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`로 더 낮출 수 있다)만
-  쓰고 얻는 게 없다. persona subagent는 서비스 기동·브라우저 구동을 자기가 직접 한다.
+  충족한다** — 이미 fresh subagent이므로 내부에서 또 dispatch하지 않는다(근거는 `gap.md` 2단계).
+  persona subagent는 서비스 기동·브라우저 구동을 자기가 직접 한다.
 
 ### Phase B — gap을 이슈로 (fresh subagent)
 
