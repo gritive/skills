@@ -47,7 +47,8 @@ RFP 한 장에서 프로젝트의 기획 문서·기준 문서·이슈를 부트
 
 | 서브커맨드              | 의존 대상                                                           | 출처                                          |
 | ----------------------- | ------------------------------------------------------------------- | --------------------------------------------- |
-| `setup`                 | `WebSearch`·`WebFetch` (2·5단계 리서치. **없으면 중단이 아니라 강등**) | Claude Code 기본 제공                       |
+| `setup`                 | Agent 툴 + `general-purpose` (2·5단계 리서치 dispatch. **없으면 중단**) | Claude Code 기본 제공                       |
+| `setup`                 | 그 subagent의 `WebSearch`·`WebFetch` (**없으면 중단이 아니라 강등**)   | Claude Code 기본 제공                       |
 | `prd-to-issue`, `build` | `gh` CLI (인증된 상태)                                              | GitHub CLI                                    |
 | `build`                 | `ship` 스킬 (9.5단계 — PR 전 리뷰)                                  | [gstack](https://github.com/gstack-sh/gstack) |
 | `build`                 | `land-and-deploy` 스킬                                              | [gstack](https://github.com/gstack-sh/gstack) |
