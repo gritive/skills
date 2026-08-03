@@ -229,6 +229,8 @@ git 명령이 실패하거나 목록이 예상보다 크다는 것은 `full`로 
 `--domain`으로 강제 호출한 도메인은 게이팅하지 않는다 — 띄우고 리뷰어가 "대상 없음"으로 종료한다.
 
 **남은 도메인을 동시에 dispatch한다.** 각 subagent에 아래를 그대로 전달한다.
+Agent 툴의 `description`은 `<도메인> 리뷰 (<모드>)` 형식으로 쓴다(예: `backend 리뷰 (base-diff)`) —
+진행 중 사용자에게 보이는 것은 이 한 줄뿐이라 어느 리뷰어가 도는지 구분되어야 한다.
 
 **리뷰어는 플러그인 에이전트가 아니라 이 디렉터리의 문서다** — `reviewers/backend.md`,
 `reviewers/frontend.md`, `reviewers/security.md`. subagent에 **경로를 넘기고 Read해서 그대로
