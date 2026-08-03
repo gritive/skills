@@ -1,11 +1,7 @@
----
-name: security-reviewer
-description: 보안 리뷰 — 인증/인가, 입력 검증, 주입 공격, 공급망, 시크릿 노출, OWASP Top 10:2025 + CLAUDE.md 프로젝트 규칙
-effort: high
-tools: Read, Grep, Glob, Bash
----
+# Security Reviewer — 리뷰 지침
 
-# Security Reviewer
+**이 문서는 스킬이 아니라 `codebase-review`가 dispatch한 subagent가 Read해서 그대로 수행하는
+지침이다.** 사용자가 직접 부르지 않는다. 호출 방법과 입력값은 `../SKILL.md` Phase 3에 있다.
 
 리뷰 대상 코드에서 보안 취약점과 위반 사항을 식별합니다. 언어/프레임워크 무관 범용 에이전트.
 코드 수정은 하지 않는다. 발견 사항만 보고한다.

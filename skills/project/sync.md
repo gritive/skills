@@ -42,21 +42,21 @@
 
 **왜 sync가 이걸 하는가**: `build`의 Storybook 정본 story backfill(`build-issue.md`)과 `gap`의 규약
 준수 리뷰(`gap.md`)는 둘 다 "design-guide가 규약을 선언했으면"이 전제다. 규약 절을 만드는 곳은
-`setup` 6단계뿐이라, **그 이전에 setup을 돌린 프로젝트는 전제가 영영 거짓이라 두 기능이 발동하지
+`setup` 5단계뿐이라, **그 이전에 setup을 돌린 프로젝트는 전제가 영영 거짓이라 두 기능이 발동하지
 않는다.** 그 구멍을 메우는 게 이 단계다.
 
 - 대상에 `docs/design-guide.md`가 **없으면 건너뛴다.** 여기서 design-guide를 새로 만들지 않는다 —
-  그건 `setup` 6단계의 일이다.
+  그건 `setup` 5단계의 일이다.
 - design-guide가 있고 **"인터랙션 패턴" 절이 없으면** 그 절을 additive로 더한다. 보강 내용은
-  **이 스킬 디렉터리의 `setup.md` 6단계를 정본으로 읽어 그대로 수행한다** — 성격별 baseline 표를
+  **이 스킬 디렉터리의 `setup.md` 5단계를 정본으로 읽어 그대로 수행한다** — 성격별 baseline 표를
   여기 복제하지 않는다(복제하면 두 파일이 갈라진다).
-- **기존 저장소이므로 setup 6단계의 brownfield reconcile 규칙이 항상 적용된다.** 현행 화면이 부류별로
+- **기존 저장소이므로 setup 5단계의 brownfield reconcile 규칙이 항상 적용된다.** 현행 화면이 부류별로
   실제 뭘 하는지 먼저 보고, 이미 일관되게 자리잡은 패턴은 **추인**한다. baseline과 다르다는 이유만으로
   뒤집지 않는다. 빈 저장소용 기본값을 돌아가는 앱에 씌우면 멀쩡한 화면이 전부 위반이 된다.
 - **컴포넌트형 웹인데 스택에 Storybook이 없으면 규약 표까지만 채우고 끝내지 않는다.** `build`의 정본
   story backfill은 design-guide의 **story 선언**을 전제로 하므로, 표만 채우면 이 커맨드가 메우려던
-  구멍이 그대로 남는다. 사용자에게 Storybook 도입 여부를 묻고 — **도입하면** `setup.md` 3단계대로
-  CLAUDE.md 기술 스택·Commands에 넣고 6단계대로 정본 story 목록을 선언한다(story 파일 자체는 만들지
+  구멍이 그대로 남는다. 사용자에게 Storybook 도입 여부를 묻고 — **도입하면** `setup.md` 2단계대로
+  CLAUDE.md 기술 스택·Commands에 넣고 5단계대로 정본 story 목록을 선언한다(story 파일 자체는 만들지
   않는다 — 그건 `build`가 UI Req에서 한다). **도입하지 않으면** 규약 표까지만 두되, "story가 없으므로
   규약 준수는 `gap` 사후 리뷰가 유일한 강제 지점"임을 보고에 남긴다.
 - **design-guide의 다른 절은 건드리지 않는다.** 인터랙션 패턴 절만 더한다.
