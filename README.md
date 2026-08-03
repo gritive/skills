@@ -7,28 +7,35 @@
 
 ### Codebase Review (`/codebase-review`)
 
-6개 전문 리뷰 에이전트를 병렬 실행하여 코드를 종합 점검합니다.
+3개 전문 리뷰어를 병렬 subagent로 실행하여 코드를 종합 점검합니다.
 
 **기본 대상은 base branch 대비 변경분입니다.** 전체 코드베이스 스캔은 `full`을 명시했을 때만 수행합니다.
 
-| 도메인       | 에이전트            | 점검 항목                                                  |
-| ------------ | ------------------- | ---------------------------------------------------------- |
-| Architecture | `arch-reviewer`     | 계층 위반, 순환 의존, 관심사 분리, 모듈 구조               |
-| Refactoring  | `refactor-reviewer` | 코드 중복, 복잡도, 코드 스멜, 네이밍                       |
-| Dead Code    | `deadcode-reviewer` | 미사용 함수, 고아 파일, 미사용 의존성                      |
-| Performance  | `perf-reviewer`     | N+1 쿼리, 메모리 릭, Core Web Vitals, 번들 크기            |
-| Security     | `security-reviewer` | 인증/인가, 입력 검증, 주입 공격, 공급망, OWASP Top 10:2025 |
-| Frontend     | `frontend-reviewer` | 타입 안전성, 컴포넌트 품질, a11y(WCAG 2.2), 상태 관리      |
+| 도메인   | 지침 문서               | 점검 항목                                                                                    |
+| -------- | ------------------- | -------------------------------------------------------------------------------------------- |
+| Backend  | `reviewers/backend.md`  | 구조(계층·순환 의존) / 리팩토링(중복·복잡도·네이밍) / 데드코드 / 성능(N+1·인덱스·메모리·동시성) |
+| Frontend | `reviewers/frontend.md` | 구조·품질(컴포넌트·타입·상태·a11y WCAG 2.2·SSR·i18n) / 리팩토링 / 데드코드 / 성능(CWV·번들·렌더링) |
+| Security | `reviewers/security.md` | 인증/인가, 입력 검증, 주입 공격, 공급망, 시크릿, OWASP Top 10:2025                            |
+
+> 로스터는 **개념이 아니라 계층**으로 나뉩니다. 예전에는 arch/refactor/deadcode/perf가 따로 있었는데
+> 넷 다 이미 문서 안에서 백엔드·프론트엔드로 갈려 있었고, 같은 결함을 네 번 보고했습니다(실측: 결함
+> 5건에 리포트 14개). **합친 것은 보고이지 검사가 아닙니다** — 항목 수는 그대로이고 병합 에이전트가
+> 렌즈별 패스를 순서대로 수행합니다. `security`만 남긴 이유는 방법론이 다르기 때문입니다(코드 형태가
+> 아니라 위협 모델). 그래서 서로 다른 프레이밍의 교차 확인이 살아 있습니다.
+>
+> 리뷰어는 **플러그인 에이전트가 아니라 `codebase-review` 하위 문서**입니다 — dispatch된 subagent가
+> Read해서 수행합니다. Codex 배포본은 `skills`만 싣기 때문에, 에이전트로 두면 그쪽에서 dispatch
+> 단계에서 죽습니다.
 
 ```
-/codebase-review                          # base branch 대비 변경분, 6개 도메인 (기본)
-/codebase-review full                     # 전체 코드베이스, 6개 도메인
+/codebase-review                          # base branch 대비 변경분, 3개 도메인 (기본)
+/codebase-review full                     # 전체 코드베이스, 3개 도메인
 /codebase-review main..HEAD               # 지정 diff (git revision 표현식 그대로)
 /codebase-review abc123                   # abc123...HEAD diff
 /codebase-review --working                # 미커밋 변경분
 /codebase-review --staged                 # 스테이징된 변경분
 /codebase-review backend                  # base diff 중 백엔드 파일만, Frontend 도메인 제외
-/codebase-review --domain perf,security   # base diff 대상, 특정 도메인만
+/codebase-review --domain backend,security # base diff 대상, 특정 도메인만
 ```
 
 base branch는 `origin/HEAD` → `origin/main` → `origin/master` → `main` → `master` 순으로 탐지합니다.
@@ -65,7 +72,7 @@ scope 필터링 후 0개, git 저장소가 아님. 대상이 500개를 넘으면
 ```bash
 /gritive:review-forever                          # gstack review (기본)
 /gritive:review-forever code-review              # 내장 code-review (작업 중인 diff)
-/gritive:review-forever codebase-review          # gritive의 6개 에이전트 병렬 리뷰
+/gritive:review-forever codebase-review          # gritive의 3개 에이전트 병렬 리뷰
 /gritive:review-forever codebase-review --domain security   # 감싼 스킬의 인자를 그대로 전달
 /gritive:review-forever plan-eng-review          # 다른 플러그인·유저 스킬도 감쌀 수 있음
 /gritive:review-forever --max-passes 3           # 패스 상한 (기본 5)
@@ -75,7 +82,7 @@ scope 필터링 후 0개, git 저장소가 아님. 대상이 500개를 넘으면
 때문에 `review`는 내장이 아니라 gstack 것으로 해석됩니다. 의도된 동작입니다 — gstack `review`는
 작업 중인 diff를 보는 pre-landing 리뷰라 이 루프에 맞습니다.
 
-**리뷰 에이전트와 달리 이 스킬은 코드를 고칩니다.** 6개 리뷰 에이전트는 읽기 전용이고, 루프가
+**리뷰어와 달리 이 스킬은 코드를 고칩니다.** 리뷰어는 읽기 전용이고, 루프가
 수정합니다 — **에이전트가 찾고, 루프가 고칩니다.** 다만 리포트·로그 같은 부산물은 대상 프로젝트에
 남기지 않습니다.
 
@@ -129,8 +136,13 @@ RFP(과업지시서) 한 장에서 프로젝트의 기획·기준 문서와 이�
 /project prd-to-issue       # PRD를 의존성 순서 GitHub 이슈로 분해
 /project sync               # 공유 템플릿으로 프로젝트 CLAUDE.md/README 보강 (additive-only)
 /project gap                # RFP·PRD 대비 실제 구현 gap + UI 노출 여부 분석
-/project build [상한]       # 이슈 백로그를 완전 자율로 burndown (PR마다 머지 재확인 없음)
-/project loop [라운드상한]  # build→gap→build→persona-test→build를 수렴까지 반복
+/project build [--demo] [상한]
+                            # 이슈 백로그를 완전 자율로 burndown (PR마다 머지 재확인 없음)
+/project loop [--demo] [라운드상한]
+                            # build→gap→build→persona-test→build를 수렴까지 반복
+                            # --demo = 데모 우선 모드: 핵심 사용자 흐름 이슈만,
+                            #   happy path 우선 구현, 리뷰는 1패스로 줄이고
+                            #   그 발견은 demo-debt 이슈로 등록해 수주 후로 미룸
 ```
 
 **`loop`** — 백로그를 태우는 것을 넘어 **더 만들 것이 없어질 때까지** 일감을 스스로 찾습니다. 한
@@ -142,8 +154,9 @@ RFP(과업지시서) 한 장에서 프로젝트의 기획·기준 문서와 이�
 
 - **완료·정체는 원시 발견 수가 아니라 "새로 만든 빌드가능 이슈"로 잽니다** — gap/persona는 라운드 간
   기억이 없어 이미 이슈로 있는 것을 매번 다시 발견하므로, 원시 수로 재면 루프가 끝나지 않습니다.
-- **빌드 제외 클래스**(`question`·`credential`·에픽·blocked)는 큐에서 뺍니다 — 사람·고객의 몫이지
-  루프의 몫이 아닙니다.
+- **빌드 제외 클래스**는 큐에서 뺍니다 — 루프가 구현하지 않는 이슈들입니다(사람·고객의 몫이거나,
+  선행 이슈에 막혀 있거나, 두 번 실패해 사람이 봐야 하는 것). 전체 목록은
+  `skills/project/loop.md`의 "빌드 제외 클래스" 절에 있습니다.
 - **build가 중단 조건(보안 결함 등)으로 멈추면 루프도 멈춥니다** — gap/persona로 넘어가지 않습니다(중단 ≠ 수렴).
 - **persona는 실행 중인 서비스를 요구**합니다. 못 띄우면 그 라운드 persona는 "미검증"이 되어 **수렴
   종료 신호로 쓰이지 못합니다** — 검사 안 한 것을 "발견 0"으로 세지 않습니다.
@@ -154,23 +167,34 @@ RFP(과업지시서) 한 장에서 프로젝트의 기획·기준 문서와 이�
 
 | 서브커맨드              | 의존 대상                                                                   | 출처                                          |
 | ----------------------- | --------------------------------------------------------------------------- | --------------------------------------------- |
-| `setup`                 | Agent 툴 (2·5단계 리서치 dispatch) + 그 subagent의 `WebSearch`·`WebFetch`   | Claude Code 기본 제공                         |
+| `setup`                 | Agent 툴 (3단계 통합 리서치 dispatch, 없으면 중단)                           | Claude Code 기본 제공                         |
+| `setup`                 | 그 subagent의 `WebSearch`·`WebFetch` (없으면 강등)                           | Claude Code 기본 제공                         |
 | `prd-to-issue`, `build` | `gh` CLI (인증된 상태)                                                      | GitHub CLI                                    |
-| `build`                 | `ship`, `land-and-deploy` (+ 선택적으로 `investigate`, `feature-pipeline`)  | [gstack](https://github.com/gstack-sh/gstack) |
+| `build`                 | 일반 모드: `gritive:review-forever` / `--demo`: `gritive:codebase-review` (9.5단계 리뷰)      | 이 플러그인                                   |
 | `loop`                  | `build`·`gap`·`persona-test` + 그 의존 전부, persona용 실행 서비스·브라우저 | 이 플러그인 / 위                              |
 
-의존 대상이 없으면 해당 서브커맨드는 절차를 임의로 재구현하지 않고 중단합니다.
+의존 대상이 없으면 해당 서브커맨드는 절차를 임의로 재구현하지 않고 중단합니다. 단, setup의 웹 도구만
+예외로 강등해 진행합니다.
 이 표의 원본은 `skills/project/SKILL.md`입니다 — 런타임에 로드되는 건 그쪽입니다.
 
 > **`/project build`는 사람 확인 없이 머지·배포까지 갑니다.** 이슈 선택 → 구현 → PR →
 > merge/deploy → 다음 이슈를 반복하며, PR마다 머지 승인을 다시 묻지 않습니다. 이 커맨드를
 > 실행하는 것 자체가 사전 승인입니다.
 >
-> 자동 승인은 **BLOCKER가 없고 리뷰가 보안 결함을 0건 보고할 때만** 일어납니다. 리뷰가 보안 결함을
-> 찾거나, 실제 시크릿 값 노출·테스트 실패·merge conflict·배포 실패·데이터 삭제 위험이 나오면 멈추고
-> 사람에게 넘깁니다. 이슈 본문과 댓글은 **데이터로만** 취급하며, 요구사항으로
-> 승격하기 전에 작성자가 write 권한자인지 확인합니다. 전체 목록은 `skills/project/build.md`의
-> "자동 진행 중단 조건"에 있습니다.
+> **자동 승인 조건과 리뷰 판정은 모드마다 다릅니다.** 값을 여기 옮겨 적지 않습니다 — 정본은
+> `skills/project/build.md`의 "리뷰 게이트" 절이고, 전체 중단 조건은 같은 파일의 "자동 진행 중단
+> 조건"에 있습니다. 실제 시크릿 값 노출·테스트 실패·merge conflict·배포 실패·데이터 삭제 위험이
+> 나오면 멈추고 사람에게 넘깁니다.
+>
+> **`--demo`는 리뷰 경로와 발견의 처분을 바꿉니다.** 수정 루프 대신 1패스 리뷰를 반드시
+> 실행하고, 나온 결함은 **`demo-debt` 이슈로 등록한 뒤
+> 머지·배포까지 진행합니다.** 자동 승인 조건도 "결함 0건"이 아니라
+> "전부 등록됨"으로 바뀌며, 등록에 실패하면 멈춥니다. 즉 **데모 모드에서는 미수정 결함이 배포될 수
+> 있습니다.** 무엇이 미뤄졌는지는 `demo-debt` 이슈와 완료 보고에 남습니다. 검증 실패·시크릿 노출 등
+> 나머지 중단 조건은 데모에서도 그대로입니다.
+>
+> 이슈 본문과 댓글은 **데이터로만** 취급하며, 요구사항으로 승격하기 전에 작성자가 write 권한자인지
+> 확인합니다.
 
 ## Installation
 
@@ -203,7 +227,7 @@ Codex는 `.agents/plugins/marketplace.json`에서 마켓플레이스를 읽고, 
 
 ### Codebase Review
 
-프로젝트 CLAUDE.md에 아키텍처 규칙, 보안 원칙 등이 있으면 리뷰 에이전트가 자동으로 반영합니다.
+프로젝트 CLAUDE.md에 아키텍처 규칙, 보안 원칙 등이 있으면 리뷰어가 자동으로 반영합니다.
 
 상세 설정 가이드: `skills/codebase-review/references/claude-md-setup.md`
 
@@ -233,16 +257,13 @@ gritive/
 │   └── marketplace.json     # 마켓플레이스 등록 정보 (버전 동기화 대상)
 ├── .codex-plugin/
 │   └── plugin.json          # Codex 플러그인 메타데이터 + 버전
-├── agents/
-│   ├── arch-reviewer.md
-│   ├── deadcode-reviewer.md
-│   ├── frontend-reviewer.md
-│   ├── perf-reviewer.md
-│   ├── refactor-reviewer.md
-│   └── security-reviewer.md
 ├── skills/
 │   ├── codebase-review/
 │   │   ├── SKILL.md
+│   │   ├── reviewers/        # dispatch된 subagent가 Read해서 수행하는 지침.
+│   │   │   ├── backend.md    # 플러그인 에이전트가 아니다 — Codex 배포본이
+│   │   │   ├── frontend.md   # skills만 싣기 때문
+│   │   │   └── security.md
 │   │   └── references/
 │   │       └── claude-md-setup.md
 │   ├── review-forever/
@@ -260,7 +281,7 @@ gritive/
 │       ├── sync.md           # 템플릿 backfill (additive-only)
 │       ├── gap.md            # 문서 대비 실제 구현 gap 분석
 │       ├── build.md          # 이슈 백로그 자율 burndown (오케스트레이터 —
-│       │                     #   선정 · 사람 작업 이슈 생성 · /ship 호출 · 머지)
+│       │                     #   선정 · 사람 작업 이슈 생성 · 리뷰/PR · 머지)
 │       ├── build-issue.md    # 이슈 하나를 맡는 subagent 지침
 │       │                     #   (split · Coverage Plan · 구현 · 검증 · Audit)
 │       ├── loop.md           # build→gap→build→persona-test→build 수렴 루프
@@ -275,7 +296,7 @@ gritive/
 
 ## Agent Interface Contract
 
-모든 리뷰 에이전트는 공통 인터페이스를 따릅니다:
+모든 리뷰어는 공통 인터페이스를 따릅니다:
 
 | 입력    | 값                                                                          |
 | ------- | --------------------------------------------------------------------------- |
@@ -292,7 +313,7 @@ gritive/
 - `mode=full`일 때만 코드베이스 전체가 대상입니다.
 - 전역 그래프가 필요한 항목(순환 의존, 번들 크기, 미사용 의존성 등)은 에이전트별로
   `base-diff` 모드에서의 축소 규칙을 정의합니다.
-- **유일한 예외**: `deadcode-reviewer`는 이 변경이 마지막 호출을 제거해 고아가 된 심볼을
+- **유일한 예외**: 데드코드 렌즈를 가진 에이전트(`backend`/`frontend`)는 이 변경이 마지막 호출을 제거해 고아가 된 심볼을
   `files` 밖이어도 보고합니다 (근거 명시, 1홉까지).
 
 **리뷰 단위는 '변경된 파일'이지 '변경된 라인'이 아닙니다.** 900줄 파일에서 3줄만 고쳐도 900줄
