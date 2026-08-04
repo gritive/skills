@@ -7,7 +7,7 @@
 
 ### Codebase Review (`/codebase-review`)
 
-3개 전문 리뷰어를 병렬 subagent로 실행하여 코드를 종합 점검합니다.
+도메인별 전문 리뷰어로 코드를 종합 점검합니다.
 
 **기본 대상은 base branch 대비 변경분입니다.** 전체 코드베이스 스캔은 `full`을 명시했을 때만 수행합니다.
 
@@ -17,19 +17,13 @@
 | Frontend | `reviewers/frontend.md` | 구조·품질(컴포넌트·타입·상태·a11y WCAG 2.2·SSR·i18n) / 리팩토링 / 데드코드 / 성능(CWV·번들·렌더링) |
 | Security | `reviewers/security.md` | 인증/인가, 입력 검증, 주입 공격, 공급망, 시크릿, OWASP Top 10:2025                            |
 
-> 로스터는 **개념이 아니라 계층**으로 나뉩니다. 예전에는 arch/refactor/deadcode/perf가 따로 있었는데
-> 넷 다 이미 문서 안에서 백엔드·프론트엔드로 갈려 있었고, 같은 결함을 네 번 보고했습니다(실측: 결함
-> 5건에 리포트 14개). **합친 것은 보고이지 검사가 아닙니다** — 항목 수는 그대로이고 병합 에이전트가
-> 렌즈별 패스를 순서대로 수행합니다. `security`만 남긴 이유는 방법론이 다르기 때문입니다(코드 형태가
-> 아니라 위협 모델). 그래서 서로 다른 프레이밍의 교차 확인이 살아 있습니다.
->
 > 리뷰어는 **플러그인 에이전트가 아니라 `codebase-review` 하위 문서**입니다 — dispatch된 subagent가
 > Read해서 수행합니다. Codex 배포본은 `skills`만 싣기 때문에, 에이전트로 두면 그쪽에서 dispatch
 > 단계에서 죽습니다.
 
 ```
-/codebase-review                          # base branch 대비 변경분, 3개 도메인 (기본)
-/codebase-review full                     # 전체 코드베이스, 3개 도메인
+/codebase-review                          # base branch 대비 변경분 (기본)
+/codebase-review full                     # 전체 코드베이스
 /codebase-review main..HEAD               # 지정 diff (git revision 표현식 그대로)
 /codebase-review abc123                   # abc123...HEAD diff
 /codebase-review --working                # 미커밋 변경분
@@ -54,11 +48,6 @@ scope 필터링 후 0개, git 저장소가 아님. 대상이 500개를 넘으면
 - `--domain`은 **어떤 에이전트를 띄울지**만 정하고, `backend`/`frontend`는 **어떤 파일을 줄지**만
   정합니다. 둘은 직교하므로 도메인을 좁혀도 대상 파일 범위가 넓어지지 않습니다.
 
-> **0.1.0에서 올라오는 경우**: `--full` → `full` (플래그가 아니라 위치 인자),
-> `--changed` → `--working`로 바뀌었습니다. `.codebase-review.jsonl` 이력과 since-last 모드는
-> 제거됐습니다. 구버전 플래그는 **자동 변환하지 않고 오류로 중단**합니다 — `--full`을 `full`로
-> 추측 변환하면 의도치 않은 전체 스캔이 실행되기 때문입니다.
-
 ### Review Forever (`/gritive:review-forever`)
 
 **리뷰 스킬을 감싸서 고칠 것이 없어질 때까지 리뷰-수정-검증을 반복합니다.** 이 스킬 자체는 리뷰하지
@@ -71,7 +60,7 @@ scope 필터링 후 0개, git 저장소가 아님. 대상이 500개를 넘으면
 ```bash
 /gritive:review-forever                          # gstack review (기본)
 /gritive:review-forever code-review              # 내장 code-review (작업 중인 diff)
-/gritive:review-forever codebase-review          # gritive의 3개 에이전트 병렬 리뷰
+/gritive:review-forever codebase-review          # gritive의 도메인별 리뷰
 /gritive:review-forever codebase-review --domain security   # 감싼 스킬의 인자를 그대로 전달
 /gritive:review-forever plan-eng-review          # 다른 플러그인·유저 스킬도 감쌀 수 있음
 /gritive:review-forever --max-passes 3           # 패스 상한 (기본 5)

@@ -1,11 +1,11 @@
 ---
 name: codebase-review
-description: "Use when the user asks for a codebase review, code health check, architecture audit, or says '코드 리뷰', '코드베이스 점검', 'codebase review', 'health check', 'code quality'. 3개 병렬 리뷰어(백엔드, 프론트엔드, 보안)로 base branch 대비 변경분을 종합 점검하고 우선순위 리포트 생성. 전체 코드베이스 스캔은 'full' 인자를 명시할 때만 수행한다."
+description: "Use when the user asks for a codebase review, code health check, architecture audit, or says '코드 리뷰', '코드베이스 점검', 'codebase review', 'health check', 'code quality'. 백엔드·프론트엔드·보안 리뷰어로 base branch 대비 변경분을 종합 점검하고 우선순위 리포트 생성. 전체 코드베이스 스캔은 'full' 인자를 명시할 때만 수행한다."
 ---
 
 # Codebase Review
 
-3개 리뷰어를 병렬 subagent로 실행하여 코드를 종합 점검하는 스킬.
+도메인별 리뷰어로 코드를 종합 점검하는 스킬.
 리뷰어는 플러그인 에이전트가 아니라 `reviewers/*.md` 지침 문서다(Phase 3).
 
 **기본 대상은 base branch 대비 변경분이다.** 전체 코드베이스 스캔은 `full`을 명시했을 때만 수행한다.
@@ -17,16 +17,6 @@ description: "Use when the user asks for a codebase review, code health check, a
 | Backend  | `reviewers/backend.md`  | 구조(계층·순환 의존·관심사 분리) / 리팩토링(중복·복잡도·네이밍) / 데드코드(미사용 심볼·고아 파일·미사용 의존성) / 성능(N+1·인덱스·메모리·동시성) |
 | Frontend | `reviewers/frontend.md` | 구조·품질(컴포넌트·타입 안전성·상태·a11y WCAG 2.2·SSR 경계·i18n) / 리팩토링 / 데드코드 / 성능(Core Web Vitals·번들·렌더링)                       |
 | Security | `reviewers/security.md` | 인증/인가, 입력 검증, 주입 공격, 공급망, 시크릿 노출, OWASP Top 10:2025                                                                          |
-
-**로스터는 개념이 아니라 계층으로 나뉜다 — 의도된 선택이다.** 예전에는 arch/refactor/deadcode/perf가
-따로 있었는데, 넷 다 **이미 문서 안에서 "백엔드 검사 항목 / 프론트엔드 검사 항목"으로 분리**돼 있었고,
-같은 결함을 네 번 보고했다(실측: 5건의 결함에 14개 리포트, 그중 하나는 5개 에이전트가 동시 지목).
-**합친 것은 보고이지 검사가 아니다** — 항목 수는 그대로이고, 병합 에이전트는 렌즈별 패스를 순서대로
-수행한다. **`security`만 남긴 이유는 방법론이 다르기 때문이다**: 나머지는 코드 형태를 읽고,
-security는 위협 모델로 본다. 그래서 같은 결함을 서로 다른 프레이밍으로 잡는 교차 확인이 살아 있다.
-
-**되돌려 쪼개지 마라 — 렌즈를 잃는 것이 아니라 리포트를 잃는 것이 목적이었다.** 항목을 압축하면
-통합의 이득이 리콜 손실로 바뀐다.
 
 ## CLAUDE.md 연동
 
@@ -147,9 +137,6 @@ git rev-parse --verify master
 
 2. 변경 파일 수집
 
-**모든 git 명령은 저장소 루트에서 실행한다.** 서브디렉토리에서 실행하면 명령마다 경로 기준이
-달라져 에이전트가 파일을 못 읽는다.
-
 ```bash
 cd "$(git rev-parse --show-toplevel)"
 ```
@@ -230,7 +217,7 @@ Agent 툴의 `description`은 `<도메인> 리뷰 (<모드>)` 형식으로 쓴�
 
 **에이전트가 아니라 문서인 이유:** 플러그인 에이전트는 Claude Code 전용이고 `.codex-plugin/plugin.json`은
 `skills`만 싣는다 — 에이전트로 두면 Codex 배포본에서 이 스킬이 dispatch 단계에서 죽는다. 문서로 두면
-양쪽에서 돈다. **`agents/`로 되돌리지 마라.**
+양쪽에서 돈다.
 
 `subagent_type`은 **읽기 전용 에이전트**를 쓴다 — 리뷰어는 코드를 고치지 않기 때문이다.
 Claude Code에서는 `Explore`(Edit/Write가 없다), 없으면 `general-purpose`로 폴백한다.
@@ -372,8 +359,8 @@ Agent(subagent_type="Explore", prompt="
 ## 실행 예시
 
 ```
-/codebase-review                          → base branch 대비 변경분, 3개 도메인 (기본)
-/codebase-review full                     → 전체 코드베이스, 3개 도메인
+/codebase-review                          → base branch 대비 변경분 (기본)
+/codebase-review full                     → 전체 코드베이스
 /codebase-review main..HEAD               → 지정 diff
 /codebase-review abc123                   → abc123...HEAD diff
 /codebase-review --working                → 미커밋 변경분

@@ -47,7 +47,7 @@ finding")가 거의 같아서, 사용자가 자연어로 요청하면 라우터�
 ```
 /gritive:review-forever                          → gstack review 스킬 (기본)
 /gritive:review-forever code-review              → Claude Code 내장 code-review
-/gritive:review-forever codebase-review          → gritive의 3개 리뷰어 병렬 실행
+/gritive:review-forever codebase-review          → gritive의 도메인별 리뷰어
 /gritive:review-forever codebase-review --domain security   → 감싼 스킬의 인자를 그대로 전달
 /gritive:review-forever plan-eng-review          → 다른 플러그인·유저 스킬도 감쌀 수 있다
 /gritive:review-forever --max-passes 3           → 첫 인자가 플래그면 기본 스킬 + 플래그로 해석
