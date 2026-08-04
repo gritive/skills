@@ -9,7 +9,10 @@
   `reviewers/*.md` 하위 문서다 — **에이전트가 아니다**(아래 Reviewer Contract). **개념이 아니라
   계층으로 나뉜다** — 예전의 arch/refactor/deadcode/perf는 이미 문서 안에서 백엔드·프론트엔드로
   갈려 있어 같은 결함을 네 번 보고했다(실측: 결함 5건에 리포트 14개). `security`만 남긴 것은
-  방법론이 달라서다(코드 형태가 아니라 위협 모델). **되돌려 쪼개지 마라**
+  방법론이 달라서다(코드 형태가 아니라 위협 모델). **되돌려 쪼개지 마라.**
+  **Security·Backend를 신호 게이팅에서 빼지 마라** — Security는 보험이라 조용해도 돌아야 하고
+  (lockfile 한 줄짜리 "설정 전용" diff가 정확히 공급망 공격면이다), Backend는 네 렌즈 중 셋이
+  언어·계층을 안 가려서 애초에 신호를 만들 수 없다. "조용하니까 빼자"로 되돌리지 마라
 - `skills/review-forever/` — 리뷰 스킬을 감싸 **실행 큐가 빌 때까지** 반복하는 루프 (자체 리뷰 로직 없음)
 - `skills/persona-test/` — 페르소나 기반 서비스 테스트 스킬
 - `skills/project/` — RFP → PRD·이슈 부트스트랩 + 백로그 자율 처리 (6개 서브커맨드 라우터: setup/prd-to-issue/sync/gap/build/loop).
