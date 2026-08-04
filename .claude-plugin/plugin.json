@@ -1,6 +1,6 @@
 {
   "name": "gritive",
-  "version": "0.4.36",
+  "version": "0.4.37",
   "description": "Comprehensive codebase review plugin with 3 parallel reviewers (backend, frontend, security) dispatched as read-only subagents. Includes a review-forever loop that wraps any review skill and iterates until its actionable queue is empty, persona-based UX testing, and a project skill that bootstraps a project from an RFP (PRD, design guide, GitHub issues), analyzes implementation gaps, and can burn down the issue backlog autonomously through merge and deploy.",
   "author": {
     "name": "Choe, Cheng-Dae"
