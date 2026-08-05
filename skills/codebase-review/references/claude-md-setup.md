@@ -1,6 +1,6 @@
 # codebase-review CLAUDE.md 설정 가이드
 
-codebase-review 스킬의 3개 리뷰어는 프로젝트 CLAUDE.md를 읽고 프로젝트 특화 규칙을 반영합니다.
+codebase-review 스킬의 리뷰어는 프로젝트 CLAUDE.md를 읽고 프로젝트 특화 규칙을 반영합니다.
 CLAUDE.md에 아래 설정을 추가하면 리뷰 정확도가 크게 향상됩니다.
 
 ## 최소 설정

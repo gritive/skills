@@ -1,23 +1,14 @@
 ---
 name: codebase-review
-description: "Use when the user asks for a codebase review, code health check, architecture audit, or says '코드 리뷰', '코드베이스 점검', 'codebase review', 'health check', 'code quality'. 3개 병렬 리뷰어(백엔드, 프론트엔드, 보안)로 base branch 대비 변경분을 종합 점검하고 우선순위 리포트 생성. 전체 코드베이스 스캔은 'full' 인자를 명시할 때만 수행한다."
+description: "Use when the user asks for a codebase review, code health check, architecture audit, or says '코드 리뷰', '코드베이스 점검', 'codebase review', 'health check', 'code quality'. 백엔드·프론트엔드·보안 리뷰어로 base branch 대비 변경분을 종합 점검하고 우선순위 리포트 생성. 전체 코드베이스 스캔은 'full' 인자를 명시할 때만 수행한다."
 ---
 
 # Codebase Review
 
-3개 리뷰어를 병렬 subagent로 실행하여 코드를 종합 점검하는 스킬.
+도메인별 리뷰어로 코드를 종합 점검하는 스킬.
 리뷰어는 플러그인 에이전트가 아니라 `reviewers/*.md` 지침 문서다(Phase 3).
 
 **기본 대상은 base branch 대비 변경분이다.** 전체 코드베이스 스캔은 `full`을 명시했을 때만 수행한다.
-
-## 산출물 규칙
-
-**리뷰 산출물을 대상 프로젝트에 남기지 않는다.** 리포트는 대화로 출력한다. 파일로 저장하는 것은
-사용자가 명시적으로 요청할 때, **사용자가 지정한 경로에만** 한다 — 경로를 받지 못했으면 물어본다
-(Phase 5). 스킬 이름을 딴 디렉토리(`codebase-review/` 등)를 대상 저장소에 만들지 않는다.
-
-여기서 '산출물'은 **리뷰가 만들어내는 부산물**(리포트·로그)을 말한다. 사용자가 요청한 코드 수정과
-그에 딸린 테스트 파일은 산출물이 아니라 작업 결과이므로 이 규칙의 대상이 아니다.
 
 ## 리뷰 도메인
 
@@ -26,16 +17,6 @@ description: "Use when the user asks for a codebase review, code health check, a
 | Backend  | `reviewers/backend.md`  | 구조(계층·순환 의존·관심사 분리) / 리팩토링(중복·복잡도·네이밍) / 데드코드(미사용 심볼·고아 파일·미사용 의존성) / 성능(N+1·인덱스·메모리·동시성) |
 | Frontend | `reviewers/frontend.md` | 구조·품질(컴포넌트·타입 안전성·상태·a11y WCAG 2.2·SSR 경계·i18n) / 리팩토링 / 데드코드 / 성능(Core Web Vitals·번들·렌더링)                       |
 | Security | `reviewers/security.md` | 인증/인가, 입력 검증, 주입 공격, 공급망, 시크릿 노출, OWASP Top 10:2025                                                                          |
-
-**로스터는 개념이 아니라 계층으로 나뉜다 — 의도된 선택이다.** 예전에는 arch/refactor/deadcode/perf가
-따로 있었는데, 넷 다 **이미 문서 안에서 "백엔드 검사 항목 / 프론트엔드 검사 항목"으로 분리**돼 있었고,
-같은 결함을 네 번 보고했다(실측: 5건의 결함에 14개 리포트, 그중 하나는 5개 에이전트가 동시 지목).
-**합친 것은 보고이지 검사가 아니다** — 항목 수는 그대로이고, 병합 에이전트는 렌즈별 패스를 순서대로
-수행한다. **`security`만 남긴 이유는 방법론이 다르기 때문이다**: 나머지는 코드 형태를 읽고,
-security는 위협 모델로 본다. 그래서 같은 결함을 서로 다른 프레이밍으로 잡는 교차 확인이 살아 있다.
-
-**되돌려 쪼개지 마라 — 렌즈를 잃는 것이 아니라 리포트를 잃는 것이 목적이었다.** 항목을 압축하면
-통합의 이득이 리콜 손실로 바뀐다.
 
 ## CLAUDE.md 연동
 
@@ -68,9 +49,8 @@ security는 위협 모델로 본다. 그래서 같은 결함을 서로 다른 �
 2. 남은 위치 인자 중 `full` / `backend` / `frontend` / `all`은 **예약어**다. 항상 키워드로 해석한다.
 3. 그 외의 위치 인자는 git revision 표현식으로 간주한다: `main..HEAD`, `develop...HEAD`, `abc123`, `v1.0..v1.1`.
 4. **`full`과 `<git-rev>`를 함께 주면 오류**로 중단한다 (모드가 상충한다). `--working` / `--staged`도 마찬가지다.
-5. **표에 없는 `--` 플래그가 오면 오류로 중단한다.** 특히 구버전 `--full` / `--changed` / `--since-last`는
-   인식하지 않는다. `full` / `--working`을 안내하되 **자동 변환하지 않는다** — `--full`을 `full`로
-   추측 변환하면 사용자가 의도하지 않은 전체 스캔이 실행된다.
+5. **표에 없는 `--` 플래그가 오면 오류로 중단한다.** 표의 인자를 안내하되 **자동 변환하지 않는다** —
+   `--full`을 `full`로 추측 변환하면 사용자가 의도하지 않은 전체 스캔이 실행된다.
 
 > **예약어와 같은 이름의 브랜치**(`backend`, `frontend`, `full`, `all`)를 리뷰하려면
 > `..`를 포함한 범위 표현식으로 준다: `/codebase-review backend..HEAD`.
@@ -116,20 +96,10 @@ scope 필터로 빠질 파일을 세게 된다).
 | Backend  | 게이팅하지 않는다                                                                                                                  |
 | Security | **절대 게이팅하지 않는다**                                                                                                         |
 
-**게이팅하지 않는 둘의 근거 — "조용하니까 빼자"로 되돌리지 마라:**
-
-- **Security는 보험이다.** 조용해도 돌아야 한다. 게다가 lockfile·매니페스트 한 줄만 바뀐
-  "설정 전용" diff가 정확히 **공급망 공격면**이다 — 코드가 안 바뀌었다는 것이 skip 근거가 아니다.
-- **Backend는 신호를 만들 수 없다.** 네 렌즈 중 셋이 언어·계층을 안 가린다 — 중복·복잡도·네이밍은
-  어디에나 걸리고, 데드코드는 삭제가 없는 diff에서도 걸리며(**새로 만든 export를 아무도 안 쓰는 것**이
-  흔하다), 계층 위반은 파일 1개짜리 변경에서도 난다. 성능 렌즈만 신호를 가릴 수 있는데, 그것 때문에
-  나머지 셋을 버릴 수는 없다 — **에이전트가 안에서 패스를 건너뛰는 것과 스킬이 에이전트를 안 띄우는
-  것은 다르다.**
-
 **판정 기준:**
 
 - **문서·텍스트 전용** = `files` 전부가 문서(`.md`, `.txt`, `LICENSE`, `docs/` 등)인 경우.
-  **설정·매니페스트·CI 파일은 여기 해당하지 않는다** — 위 Security 근거대로 코드 취급한다.
+  **설정·매니페스트·CI 파일은 여기 해당하지 않는다** — 코드로 취급한다.
 - **프론트엔드 파일** = 컴포넌트·스타일·클라이언트 진입점. 프로젝트 구조에서 판단한다 —
   확장자 목록을 여기 하드코딩하지 않는다.
 - 애매하면 **띄운다.** 게이팅의 실패는 비용이고, 안 띄운 것의 실패는 놓친 결함이다.
@@ -155,9 +125,6 @@ git rev-parse --verify master
 ```
 
 2. 변경 파일 수집
-
-**모든 git 명령은 저장소 루트에서 실행한다.** 서브디렉토리에서 실행하면 명령마다 경로 기준이
-달라져 에이전트가 파일을 못 읽는다.
 
 ```bash
 cd "$(git rev-parse --show-toplevel)"
@@ -239,7 +206,7 @@ Agent 툴의 `description`은 `<도메인> 리뷰 (<모드>)` 형식으로 쓴�
 
 **에이전트가 아니라 문서인 이유:** 플러그인 에이전트는 Claude Code 전용이고 `.codex-plugin/plugin.json`은
 `skills`만 싣는다 — 에이전트로 두면 Codex 배포본에서 이 스킬이 dispatch 단계에서 죽는다. 문서로 두면
-양쪽에서 돈다. **`agents/`로 되돌리지 마라.**
+양쪽에서 돈다.
 
 `subagent_type`은 **읽기 전용 에이전트**를 쓴다 — 리뷰어는 코드를 고치지 않기 때문이다.
 Claude Code에서는 `Explore`(Edit/Write가 없다), 없으면 `general-purpose`로 폴백한다.
@@ -381,8 +348,8 @@ Agent(subagent_type="Explore", prompt="
 ## 실행 예시
 
 ```
-/codebase-review                          → base branch 대비 변경분, 3개 도메인 (기본)
-/codebase-review full                     → 전체 코드베이스, 3개 도메인
+/codebase-review                          → base branch 대비 변경분 (기본)
+/codebase-review full                     → 전체 코드베이스
 /codebase-review main..HEAD               → 지정 diff
 /codebase-review abc123                   → abc123...HEAD diff
 /codebase-review --working                → 미커밋 변경분

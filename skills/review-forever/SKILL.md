@@ -40,17 +40,14 @@ finding")가 거의 같아서, 사용자가 자연어로 요청하면 라우터�
 `review-forever`는 그 발견을 **실제로 고친다.** 그것이 이 스킬의 존재 이유다.
 **에이전트가 찾고, 루프가 고친다.**
 
-**단, 리뷰의 부산물은 대상 프로젝트에 남기지 않는다.** 패스별 리포트·로그·중간 산출물은 대화로만
-출력한다. 스킬 이름을 딴 디렉토리를 대상 저장소에 만들지 않는다.
-
-코드 수정과 그에 딸린 테스트는 **작업 결과**이지 부산물이 아니다. 이 규칙의 대상이 아니다.
+패스별 리포트·로그는 대화로 출력한다.
 
 ## 인자
 
 ```
 /gritive:review-forever                          → gstack review 스킬 (기본)
 /gritive:review-forever code-review              → Claude Code 내장 code-review
-/gritive:review-forever codebase-review          → gritive의 3개 리뷰어 병렬 실행
+/gritive:review-forever codebase-review          → gritive의 도메인별 리뷰어
 /gritive:review-forever codebase-review --domain security   → 감싼 스킬의 인자를 그대로 전달
 /gritive:review-forever plan-eng-review          → 다른 플러그인·유저 스킬도 감쌀 수 있다
 /gritive:review-forever --max-passes 3           → 첫 인자가 플래그면 기본 스킬 + 플래그로 해석
@@ -180,7 +177,7 @@ git rev-list --count {base}..HEAD   # 브랜치에 커밋이 쌓였는가
 Phase 4에서 `REVIEW_STATUS: ran|no-target|aborted`를 낸다. `ran`이면 리뷰가 돈 것이고,
 도메인별 대시보드에 `N/A (대상 파일 없음)` 셀이 몇 개 있든 **정상이다** — 그것은 "이 축에는
 볼 파일이 없었다"는 사람용 표기이지 미실행 신호가 아니다. **셀 문자열로 판정하면 프론트엔드
-파일이 없는 평범한 백엔드 변경마다 루프가 중단한다**(실측으로 걸렸다).
+파일이 없는 평범한 백엔드 변경마다 루프가 중단한다.**
 
 - `ran` → 발견을 트리아지한다(Phase 3).
 - `no-target` → **완료로 친다.** 코드가 안 바뀌었으면(문서·텍스트 전용 diff) 코드 리뷰가 찾을
