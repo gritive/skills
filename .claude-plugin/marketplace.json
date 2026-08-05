@@ -5,13 +5,13 @@
     "email": "charlie.choe@gritive.com"
   },
   "metadata": {
-    "description": "Comprehensive codebase review with 6 parallel agents + a review-until-clean loop + persona-based UX testing + RFP-to-project bootstrapping with autonomous issue backlog burndown.",
-    "version": "0.4.34"
+    "description": "Comprehensive codebase review with backend, frontend, and security reviewers + a review-until-clean loop + persona-based UX testing + RFP-to-project bootstrapping with autonomous issue backlog burndown.",
+    "version": "0.4.38"
   },
   "plugins": [
     {
       "name": "gritive",
-      "description": "3개 병렬 리뷰어(백엔드, 프론트엔드, 보안)로 코드베이스 종합 점검 + 리뷰 스킬을 감싸 고칠 것이 없어질 때까지 반복하는 review-forever 루프 + 페르소나 기반 UX 테스트 + RFP 기반 프로젝트 부트스트랩(PRD·이슈 생성, gap 분석, 이슈 백로그 자율 처리).",
+      "description": "백엔드·프론트엔드·보안 리뷰어로 코드베이스 종합 점검 + 리뷰 스킬을 감싸 고칠 것이 없어질 때까지 반복하는 review-forever 루프 + 페르소나 기반 UX 테스트 + RFP 기반 프로젝트 부트스트랩(PRD·이슈 생성, gap 분석, 이슈 백로그 자율 처리).",
       "source": "./"
     }
   ]
