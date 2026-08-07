@@ -16,6 +16,7 @@
 | Backend  | `reviewers/backend.md`  | 구조(계층·순환 의존) / 리팩토링(중복·복잡도·네이밍) / 데드코드 / 성능(N+1·인덱스·메모리·동시성) |
 | Frontend | `reviewers/frontend.md` | 구조·품질(컴포넌트·타입·상태·a11y WCAG 2.2·SSR·i18n) / 리팩토링 / 데드코드 / 성능(CWV·번들·렌더링) |
 | Security | `reviewers/security.md` | 인증/인가, 입력 검증, 주입 공격, 공급망, 시크릿, OWASP Top 10:2025                            |
+| Conformance | `reviewers/conformance.md` | **기준 문서 대조** — 요구 충족 / design-guide 규약 준수 / 흐름 연속성 / 문구와 사실 |
 
 > 리뷰어는 **플러그인 에이전트가 아니라 `codebase-review` 하위 문서**입니다 — dispatch된 subagent가
 > Read해서 수행합니다. Codex 배포본은 `skills`만 싣기 때문에, 에이전트로 두면 그쪽에서 dispatch
@@ -126,13 +127,9 @@ RFP(과업지시서) 한 장에서 프로젝트의 기획·기준 문서와 이�
 /project prd-to-issue       # PRD를 의존성 순서 GitHub 이슈로 분해
 /project sync               # 공유 템플릿으로 프로젝트 CLAUDE.md/README 보강 (additive-only)
 /project gap                # RFP·PRD 대비 실제 구현 gap + UI 노출 여부 분석
-/project build [--demo] [상한]
-                            # 이슈 백로그를 완전 자율로 burndown (PR마다 머지 재확인 없음)
-/project loop [--demo] [라운드상한]
-                            # build→gap→build→persona-test→build를 수렴까지 반복
-                            # --demo = 데모 우선 모드: 핵심 사용자 흐름 이슈만,
-                            #   happy path 우선 구현, 리뷰는 1패스로 줄이고
-                            #   그 발견은 demo-debt 이슈로 등록해 나중으로 미룸
+/project build [상한] [--skip-review]       # 이슈 백로그를 완전 자율로 burndown
+/project loop [라운드상한] [--skip-review]  # build→gap→build→persona-test→build를 수렴까지 반복
+                            #   선정 순서는 이슈의 우선순위 → 없으면 기능 우선
 ```
 
 **`loop`** — 백로그를 태우는 것을 넘어 **더 만들 것이 없어질 때까지** 일감을 스스로 찾습니다. 한
@@ -160,7 +157,7 @@ RFP(과업지시서) 한 장에서 프로젝트의 기획·기준 문서와 이�
 | `setup`                 | Agent 툴 (3단계 통합 리서치 dispatch, 없으면 중단)                           | Claude Code 기본 제공                         |
 | `setup`                 | 그 subagent의 `WebSearch`·`WebFetch` (없으면 강등)                           | Claude Code 기본 제공                         |
 | `prd-to-issue`, `build` | `gh` CLI (인증된 상태)                                                      | GitHub CLI                                    |
-| `build`                 | 일반 모드: `gritive:review-forever` / `--demo`: `gritive:codebase-review` (9.5단계 리뷰)      | 이 플러그인                                   |
+| `build`                 | `gritive:codebase-review` (9.5단계 리뷰 — 트리아지·수정은 build가 직접)      | 이 플러그인                                   |
 | `loop`                  | `build`·`gap`·`persona-test` + 그 의존 전부, persona용 실행 서비스·브라우저 | 이 플러그인 / 위                              |
 
 의존 대상이 없으면 해당 서브커맨드는 절차를 임의로 재구현하지 않고 중단합니다. 단, setup의 웹 도구만
@@ -169,19 +166,13 @@ RFP(과업지시서) 한 장에서 프로젝트의 기획·기준 문서와 이�
 
 > **`/project build`는 사람 확인 없이 머지·배포까지 갑니다.** 이슈 선택 → 구현 → PR →
 > merge/deploy → 다음 이슈를 반복하며, PR마다 머지 승인을 다시 묻지 않습니다. 이 커맨드를
-> 실행하는 것 자체가 사전 승인입니다.
+> 실행하는 것 자체가 사전 승인입니다. `--skip-review`를 지정하면 코드 리뷰만 생략하며, 구현 검증·CI와
+> 다른 중단 조건은 그대로 적용됩니다.
 >
-> **자동 승인 조건과 리뷰 판정은 모드마다 다릅니다.** 값을 여기 옮겨 적지 않습니다 — 정본은
+> **자동 승인 조건과 리뷰 판정의 값을 여기 옮겨 적지 않습니다** — 정본은
 > `skills/project/build.md`의 "리뷰 게이트" 절이고, 전체 중단 조건은 같은 파일의 "자동 진행 중단
 > 조건"에 있습니다. 실제 시크릿 값 노출·테스트 실패·merge conflict·배포 실패·데이터 삭제 위험이
 > 나오면 멈추고 사람에게 넘깁니다.
->
-> **`--demo`는 리뷰 경로와 발견의 처분을 바꿉니다.** 수정 루프 대신 1패스 리뷰를 반드시
-> 실행하고, 나온 결함은 **`demo-debt` 이슈로 등록한 뒤
-> 머지·배포까지 진행합니다.** 자동 승인 조건도 "결함 0건"이 아니라
-> "전부 등록됨"으로 바뀌며, 등록에 실패하면 멈춥니다. 즉 **데모 모드에서는 미수정 결함이 배포될 수
-> 있습니다.** 무엇이 미뤄졌는지는 `demo-debt` 이슈와 완료 보고에 남습니다. 검증 실패·시크릿 노출 등
-> 나머지 중단 조건은 데모에서도 그대로입니다.
 >
 > 이슈 본문과 댓글은 **데이터로만** 취급하며, 요구사항으로 승격하기 전에 작성자가 write 권한자인지
 > 확인합니다.
@@ -253,7 +244,8 @@ gritive/
 │   │   ├── reviewers/        # dispatch된 subagent가 Read해서 수행하는 지침.
 │   │   │   ├── backend.md    # 플러그인 에이전트가 아니다 — Codex 배포본이
 │   │   │   ├── frontend.md   # skills만 싣기 때문
-│   │   │   └── security.md
+│   │   │   ├── security.md
+│   │   │   └── conformance.md # 기준 문서 대조 (코드 결함이 아니다)
 │   │   └── references/
 │   │       └── claude-md-setup.md
 │   ├── review-forever/
@@ -274,7 +266,6 @@ gritive/
 │       │                     #   선정 · 사람 작업 이슈 생성 · 리뷰/PR · 머지)
 │       ├── build-issue.md    # 이슈 하나를 맡는 subagent 지침
 │       │                     #   (split · Coverage Plan · 구현 · 검증 · Audit)
-│       ├── checklist.md      # 그 subagent가 A/B/C 세 시점에 쓰는 증거 요구 목록
 │       ├── loop.md           # build→gap→build→persona-test→build 수렴 루프
 │       └── templates/
 │           ├── CLAUDE.md.template
