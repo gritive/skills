@@ -1,6 +1,6 @@
 ---
 name: codebase-review
-description: "Use when the user asks for a codebase review, code health check, architecture audit, or says '코드 리뷰', '코드베이스 점검', 'codebase review', 'health check', 'code quality'. 백엔드·프론트엔드·보안 리뷰어로 base branch 대비 변경분을 종합 점검하고 우선순위 리포트 생성. 전체 코드베이스 스캔은 'full' 인자를 명시할 때만 수행한다."
+description: "Use when the user asks for a codebase review, code health check, architecture audit, or says '코드 리뷰', '코드베이스 점검', 'codebase review', 'health check', 'code quality'. 백엔드·프론트엔드·보안·기준대조 리뷰어로 base branch 대비 변경분을 종합 점검하고 우선순위 리포트 생성. 전체 코드베이스 스캔은 'full' 인자를 명시할 때만 수행한다."
 ---
 
 # Codebase Review
@@ -17,6 +17,7 @@ description: "Use when the user asks for a codebase review, code health check, a
 | Backend  | `reviewers/backend.md`  | 구조(계층·순환 의존·관심사 분리) / 리팩토링(중복·복잡도·네이밍) / 데드코드(미사용 심볼·고아 파일·미사용 의존성) / 성능(N+1·인덱스·메모리·동시성) |
 | Frontend | `reviewers/frontend.md` | 구조·품질(컴포넌트·타입 안전성·상태·a11y WCAG 2.2·SSR 경계·i18n) / 리팩토링 / 데드코드 / 성능(Core Web Vitals·번들·렌더링)                       |
 | Security | `reviewers/security.md` | 인증/인가, 입력 검증, 주입 공격, 공급망, 시크릿 노출, OWASP Top 10:2025                                                                          |
+| Conformance | `reviewers/conformance.md` | **기준 문서와의 대조**(코드 결함이 아니다) — 요구 충족 / design-guide 규약 준수 / 흐름 연속성 / 문구와 사실                            |
 
 ## CLAUDE.md 연동
 
@@ -66,7 +67,7 @@ description: "Use when the user asks for a codebase review, code health check, a
 | `all` (기본)      | 백엔드 + 프론트엔드 전체                                 |
 | `backend`         | 백엔드만 (프로젝트 구조에서 자동 탐지)                   |
 | `frontend`        | 프론트엔드만 (프로젝트 구조에서 자동 탐지)               |
-| `--domain <name>` | 특정 도메인만 (backend, frontend, security). 콤마로 복수 |
+| `--domain <name>` | 특정 도메인만 (backend, frontend, security, conformance). 콤마로 복수 |
 
 **도메인 필터링 규칙**
 
@@ -84,7 +85,7 @@ description: "Use when the user asks for a codebase review, code health check, a
 - 따라서 `backend --domain frontend`처럼 상충하는 조합은 오류가 아니다.
   frontend 리뷰어가 실행되지만 `files`에 프론트엔드 파일이 없으므로 "대상 없음"으로 종료한다.
 
-**신호 게이팅 — 볼 대상이 없는 에이전트는 띄우지 않는다**
+#### 신호 게이팅 — 볼 대상이 없는 에이전트는 띄우지 않는다
 
 `--domain`이 **없을 때만** 적용한다. Phase 2가 `files`를 확정한 뒤 판정한다(그 전에 판정하면
 scope 필터로 빠질 파일을 세게 된다).
@@ -95,6 +96,7 @@ scope 필터로 빠질 파일을 세게 된다).
 | Frontend | 프론트엔드 파일(컴포넌트·스타일·클라이언트 진입점)이 0개면 skip                                                                    |
 | Backend  | 게이팅하지 않는다                                                                                                                  |
 | Security | **절대 게이팅하지 않는다**                                                                                                         |
+| Conformance | **게이팅하지 않는다** — 백엔드 변경도 PRD 요구를 안 채울 수 있다. 기준 문서가 없으면 리뷰어가 그 사실을 보고하고 스스로 종료한다 |
 
 **판정 기준:**
 
@@ -195,12 +197,12 @@ git 명령이 실패하거나 목록이 예상보다 크다는 것은 `full`로 
 
 `--domain`으로 강제 호출한 도메인은 게이팅하지 않는다 — 띄우고 리뷰어가 "대상 없음"으로 종료한다.
 
-**남은 도메인을 동시에 dispatch한다.** 각 subagent에 아래를 그대로 전달한다.
+**남은 도메인을 한 메시지에서 동시에 dispatch한다.** 각 subagent에 아래를 그대로 전달한다.
 Agent 툴의 `description`은 `<도메인> 리뷰 (<모드>)` 형식으로 쓴다(예: `backend 리뷰 (base-diff)`) —
 진행 중 사용자에게 보이는 것은 이 한 줄뿐이라 어느 리뷰어가 도는지 구분되어야 한다.
 
 **리뷰어는 플러그인 에이전트가 아니라 이 디렉터리의 문서다** — `reviewers/backend.md`,
-`reviewers/frontend.md`, `reviewers/security.md`. subagent에 **경로를 넘기고 Read해서 그대로
+`reviewers/frontend.md`, `reviewers/security.md`, `reviewers/conformance.md`. subagent에 **경로를 넘기고 Read해서 그대로
 수행하게 한다. 요약해서 넘기지 않는다** — 요약이 곧 지침 유실이다(`project`가 `build-issue.md`를
 넘기는 것과 같은 방식이다).
 
@@ -221,6 +223,7 @@ Agent(subagent_type="Explore", prompt="
   base: {실제 사용한 git diff 인자 — 예: origin/main...HEAD (기본), HEAD (--working), --cached (--staged)}
   files:
   {대상 파일 목록 — mode=base-diff일 때만. 저장소 루트 기준 경로. 한 줄에 하나씩}
+  이슈 맥락: {호출자가 넘겼으면 그대로. conformance에만 의미가 있고 나머지는 무시한다. 없으면 이 줄을 뺀다}
 
   ## 리뷰 범위 계약
   - mode=base-diff: 위 `files` 목록에 있는 파일만 리뷰 대상이다. 발견 사항은 반드시
@@ -236,8 +239,14 @@ Agent(subagent_type="Explore", prompt="
 ")
 ```
 
+**`conformance`에게 추가로 전달하는 것** — 호출자(`project build` 등)가 **이슈 본문·수용 기준·핵심
+사용자 흐름 단계**를 넘겼으면 위 `이슈 맥락`에 그대로 싣는다. **요약하지 않는다** — 요약이 기준을
+무르게 만든다. 안 넘어왔으면 그 줄을 빼고, 리뷰어는 저장소 문서(PRD·design-guide)만으로 판정한다.
+**빌더의 Coverage Plan·Audit 표는 절대 넘기지 않는다** — 그것을 넘기면 독립 평가가 자기채점으로
+돌아간다(그 문서의 "기준은 둘이고 층이 다르다" 절).
+
 **`backend`·`frontend`에게 추가로 전달하는 예외** (둘 다 데드코드 렌즈를 갖는다.
-`security`에는 넘기지 않는다):
+`security`·`conformance`에는 넘기지 않는다):
 
 ```
   ## 데드코드 예외
@@ -257,6 +266,7 @@ Agent(subagent_type="Explore", prompt="
 - `reviewers/backend.md` — 아키텍처 원칙, Critical Rules, 코딩·네이밍 컨벤션, 특수 진입점, 성능 제약
 - `reviewers/frontend.md` — 프론트엔드 프레임워크와 **버전**, 컴포넌트·상태 관리·CSS 규칙, i18n 시스템
 - `reviewers/security.md` — 프로젝트의 보안 원칙과 Critical Rules
+- `reviewers/conformance.md` — 기준 문서(PRD·design-guide·이슈 본문)의 위치와 인터랙션 규약
 
 `--domain` 옵션으로 특정 도메인만 지정된 경우 해당 에이전트만 실행.
 
@@ -284,21 +294,23 @@ Agent(subagent_type="Explore", prompt="
 
 **`aborted`가 `ran`을 이긴다.** 리뷰어 문서를 못 읽은 도메인이 하나라도 있으면 **다른 도메인이
 돌았더라도** `aborted (리뷰어 문서 없음: {경로})`로 낸다(Phase 3). "하나라도 띄웠으면 `ran`"을 그대로
-적용하면 `security` 문서가 없어도 `ran (2/3)`이 나가고, 게이팅하지 않기로 한 보안 리뷰가 통과로 읽힌다.
+적용하면 `security` 문서가 없어도 `ran (3/4)`이 나가고, 게이팅하지 않기로 한 보안 리뷰가 통과로 읽힌다.
 
 **이 줄은 사람이 아니라 이 스킬을 감싸는 쪽을 위한 것이다.** 리뷰가 **정상적으로 축소된 것**과
 **돌지 못한 것**을 표기로 구분해야 하는데, 대시보드의 `N/A`는 도메인 하나에 대한 사람용 표기라
 그 구분을 담지 못한다. 감싼 스킬이 셀 문자열을 보고 판정하면 정상 축소를 미실행으로 읽는다
-(`review-forever` Phase 2가 이 줄로 판정한다). **표기를 바꾸더라도 이 세 값은 유지하라.**
+(소비자는 둘이다 — `review-forever` Phase 2와 `project build` 9.5단계의 반환 계약 `review_status`).
+**표기를 바꾸더라도 이 세 값은 유지하라.**
 
 ## 요약 대시보드
 
-| 도메인   | 발견 수 | Critical | High | Medium | Low |
-| -------- | ------- | -------- | ---- | ------ | --- |
-| Backend  |         |          |      |        |     |
-| Frontend |         |          |      |        |     |
-| Security |         |          |      |        |     |
-| **합계** |         |          |      |        |     |
+| 도메인      | 발견 수 | Critical | High | Medium | Low |
+| ----------- | ------- | -------- | ---- | ------ | --- |
+| Backend     |         |          |      |        |     |
+| Frontend    |         |          |      |        |     |
+| Security    |         |          |      |        |     |
+| Conformance |         |          |      |        |     |
+| **합계**    |         |          |      |        |     |
 
 **세 가지 상태를 구분한다:**
 
