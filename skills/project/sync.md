@@ -7,6 +7,14 @@
 **README는 대상이 아니다.** README 템플릿의 모든 섹션(구성/기술스택/시작하기/문서)이 프로젝트 고유
 슬롯이라 밀어넣을 공유 baseline이 없다 — README에 대해서는 이 커맨드가 할 일이 없다.
 
+## 묻지 못하는 실행 (강등)
+
+이 문서의 절차는 여러 곳에서 사용자에게 묻는다. subagent에는 `AskUserQuestion`이 없으므로(예: `project loop`이 dispatch한 경우) 그때는 다음으로 대체한다.
+
+- 물어야 확인되는 **추가·삽입은 하지 않고** 넘어간다(섹션 제목 추가, 슬롯 값 채우기, Storybook 도입 여부, `인터랙션 테스트:` 한 줄, 애매한 불릿). 확인 없이 넣지 않는 것이 additive-only의 기본값이다.
+- 넘어간 항목은 무엇을 왜 못 채웠는지 함께 `degraded`로 반환한다.
+- 대상 `CLAUDE.md`가 없어 diff 대상이 아예 없으면 `blocked`으로 반환한다.
+
 ## 원칙 (additive-only)
 
 - 템플릿 → 프로젝트 방향으로만 흐른다. 프로젝트 고유 내용은 절대 덮어쓰지 않는다.
@@ -40,23 +48,17 @@
 
 ### 4. design-guide 인터랙션 규약 backfill (`docs/design-guide.md`)
 
-**왜 sync가 이걸 하는가**: `build`의 Storybook 정본 story backfill(`build-issue.md`)과 `gap`의 규약
-준수 리뷰(`gap.md`)는 둘 다 "design-guide가 규약을 선언했으면"이 전제다. 규약 절을 만드는 곳은
-`setup` 5단계뿐이라, **그 이전에 setup을 돌린 프로젝트는 전제가 영영 거짓이라 두 기능이 발동하지
-않는다.** 그 구멍을 메우는 게 이 단계다.
+`build`의 Storybook 표준 story backfill과 `gap`의 규약 준수 리뷰는 둘 다 design-guide가 규약을 선언했을 때 발동한다. 이 단계는 규약 절이 없는 기존 프로젝트에 그 절을 채워 두 기능이 발동하게 한다.
 
 - 대상에 `docs/design-guide.md`가 **없으면 건너뛴다.** 여기서 design-guide를 새로 만들지 않는다 —
   그건 `setup` 5단계의 일이다.
 - design-guide가 있고 **"인터랙션 패턴" 절이 없으면** 그 절을 additive로 더한다. 보강 내용은
-  **이 스킬 디렉터리의 `setup.md` 5단계를 정본으로 읽어 그대로 수행한다** — 성격별 baseline 표를
-  여기 복제하지 않는다(복제하면 두 파일이 갈라진다).
-- **기존 저장소이므로 setup 5단계의 brownfield reconcile 규칙이 항상 적용된다.** 현행 화면이 부류별로
-  실제 뭘 하는지 먼저 보고, 이미 일관되게 자리잡은 패턴은 **추인**한다. baseline과 다르다는 이유만으로
-  뒤집지 않는다. 빈 저장소용 기본값을 돌아가는 앱에 씌우면 멀쩡한 화면이 전부 위반이 된다.
-- **컴포넌트형 웹인데 스택에 Storybook이 없으면 규약 표까지만 채우고 끝내지 않는다.** `build`의 정본
+  **이 스킬 디렉터리의 `references/interaction-baseline.md`를 읽어 수행한다.**
+- **기존 저장소이므로 `setup.md` 5단계의 brownfield reconcile 규칙을 그대로 적용한다.**
+- **컴포넌트형 웹인데 스택에 Storybook이 없으면 규약 표까지만 채우고 끝내지 않는다.** `build`의 표준
   story backfill은 design-guide의 **story 선언**을 전제로 하므로, 표만 채우면 이 커맨드가 메우려던
   구멍이 그대로 남는다. 사용자에게 Storybook 도입 여부를 묻고 — **도입하면** `setup.md` 2단계대로
-  CLAUDE.md 기술 스택·Commands에 넣고 5단계대로 정본 story 목록을 선언한다(story 파일 자체는 만들지
+  CLAUDE.md 기술 스택·Commands에 넣고 5단계대로 표준 story 목록을 선언한다(story 파일 자체는 만들지
   않는다 — 그건 `build`가 UI Req에서 한다). **도입하지 않으면** 규약 표까지만 두되, "story가 없으므로
   규약 준수는 `gap` 사후 리뷰가 유일한 강제 지점"임을 보고에 남긴다.
 - **design-guide의 다른 절은 건드리지 않는다.** 인터랙션 패턴 절만 더한다.

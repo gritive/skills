@@ -157,7 +157,7 @@ RFP(과업지시서) 한 장에서 프로젝트의 기획·기준 문서와 이�
 | `setup`                 | Agent 툴 (3단계 통합 리서치 dispatch, 없으면 중단)                           | Claude Code 기본 제공                         |
 | `setup`                 | 그 subagent의 `WebSearch`·`WebFetch` (없으면 강등)                           | Claude Code 기본 제공                         |
 | `prd-to-issue`, `build` | `gh` CLI (인증된 상태)                                                      | GitHub CLI                                    |
-| `build`                 | `gritive:codebase-review` (9.5단계 리뷰 — 트리아지·수정은 build가 직접)      | 이 플러그인                                   |
+| `build`                 | `codebase-review` 리뷰어 지침 문서 (9.5단계가 직접 dispatch — 트리아지·수정도 build) | 이 플러그인                          |
 | `loop`                  | `build`·`gap`·`persona-test` + 그 의존 전부, persona용 실행 서비스·브라우저 | 이 플러그인 / 위                              |
 
 의존 대상이 없으면 해당 서브커맨드는 절차를 임의로 재구현하지 않고 중단합니다. 단, setup의 웹 도구만
@@ -169,8 +169,8 @@ RFP(과업지시서) 한 장에서 프로젝트의 기획·기준 문서와 이�
 > 실행하는 것 자체가 사전 승인입니다. `--skip-review`를 지정하면 코드 리뷰만 생략하며, 구현 검증·CI와
 > 다른 중단 조건은 그대로 적용됩니다.
 >
-> **자동 승인 조건과 리뷰 판정의 값을 여기 옮겨 적지 않습니다** — 정본은
-> `skills/project/build.md`의 "리뷰 게이트" 절이고, 전체 중단 조건은 같은 파일의 "자동 진행 중단
+> **자동 승인 조건과 리뷰 판정의 값을 여기 옮겨 적지 않습니다** — 기준은
+> `skills/project/build.md`의 "9.5. 리뷰·PR" 절이고, 전체 중단 조건은 같은 파일의 "자동 진행 중단
 > 조건"에 있습니다. 실제 시크릿 값 노출·테스트 실패·merge conflict·배포 실패·데이터 삭제 위험이
 > 나오면 멈추고 사람에게 넘깁니다.
 >
