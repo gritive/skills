@@ -48,7 +48,8 @@
   워킹 트리 때문에 깨끗한 checkout이 안 되면 위 규칙대로 멈추고 보고한다.
 - `gh` 인증을 확인한다. `--skip-review`가 아닐 때만 9.5단계가 읽고 dispatch할 문서
   (`../codebase-review/SKILL.md`, `../codebase-review/reviewers/backend.md`·`frontend.md`·`security.md`,
-  그리고 backend·frontend가 요구하는 `../codebase-review/reviewers/shared-lenses.md`)가 전부 있는지도
+  세 리뷰어가 요구하는 `../codebase-review/reviewers/evidence-gate.md`, 그리고 backend·frontend가
+  요구하는 `../codebase-review/reviewers/shared-lenses.md`·`smell-baseline.md`)가 전부 있는지도
   확인한다. 하나라도 없으면 멈추고 보고한다 — **리뷰는 그 리뷰어가 돌 때만 실행된 것이다.**
 - 대상 프로젝트 `CLAUDE.md`에 **`## Deploy` 절**이 있으면 배포 명령과 헬스체크 URL을 읽어 둔다.
   **없으면 그대로 진행한다** — 배포는 옵셔널이고, 없다는 사실만 완료 보고에 남긴다(10단계).
