@@ -297,6 +297,7 @@ git diff --name-only --diff-filter=d origin/<base>...HEAD
 | `unresolved` | 2패스 뒤 남은 발견의 심각도·파일·요지 |
 | `held` | 보류 발견 전문(`hard-gates.md` 결정이 필요한 것만) |
 | `out_of_scope` | 범위 밖 발견 전문 |
+| `unverified` | 리뷰어 리포트의 `미검증 관찰` 절 전문 |
 | `code_changed` | 리뷰 수정 여부 |
 | `stop_reason` | 잔여가 있으면 `재리뷰 후 잔여`, 아니면 `없음` |
 
@@ -317,7 +318,7 @@ git diff --name-only --diff-filter=d origin/<base>...HEAD
 #### 발견 처리
 
 - `unresolved`와 `held`는 각각 후속 이슈로 등록하고 원 이슈·PR을 연결한다. 등록하면 merge를 진행한다.
-- `out_of_scope`는 새 이슈를 만들지 않고 PR 본문과 완료 보고에 전부 기록한다.
+- `out_of_scope`와 `unverified`는 새 이슈를 만들지 않고 PR 본문과 완료 보고에 전부 기록한다.
 - **발견 자체는 진행을 막지 않는다.** 리뷰 미실행, 발견 등록 실패, 리뷰 수정 검증 실패가 진행을 막는다.
 
 #### PR 생성
@@ -327,7 +328,7 @@ git diff --name-only --diff-filter=d origin/<base>...HEAD
 - 원 이슈와 Coverage Audit 결과
 - 검증 명령과 결과
 - 리뷰 상태 또는 `skipped (--skip-review)`
-- 수정·미해결·보류·범위 밖 발견
+- 수정·미해결·보류·범위 밖·미검증 관찰 발견
 - 생성한 후속 이슈
 
 Coverage Audit이 모두 `done`일 때만 `Closes #N`을 사용한다. 묶음이면 이슈마다 `Closes`를 적는다 —
@@ -410,6 +411,7 @@ Coverage Audit이 모두 `done`일 때만 `Closes #N`을 사용한다. 묶음이
   (**`review_status` 줄 그대로**), **`queue_by_pass`**, 결함 수·심각도, 고친 항목,
   **보류(`hard-gates.md` 결정 필요) 발견을 심각도와 함께 전부** — 없으면 "없음",
   **범위 밖 발견을 심각도와 함께 전부**. 없으면 "없음" — 이것이 게이트 카운트에서 빠진 항목이므로
-  적지 않으면 사람이 그 존재를 모른다
+  적지 않으면 사람이 그 존재를 모른다,
+  **미검증 관찰(`unverified`) 전문**. 없으면 "없음" — 같은 이유다
 - 스스로 결정한 애매한 선택과 근거(있으면)
 - 다음 처리 이슈
