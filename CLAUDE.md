@@ -4,7 +4,8 @@
 
 ## Architecture
 
-- `skills/codebase-review/reviewers/*.md`는 dispatch된 읽기 전용 reviewer 지침이다. skill이나 plugin agent가 아니다.
+- `skills/codebase-review/reviewers/`의 `backend.md`·`frontend.md`·`security.md`·`conformance.md`는 dispatch된 읽기 전용 reviewer 지침이다. skill이나 plugin agent가 아니다.
+- 같은 디렉터리의 `shared-lenses.md`·`smell-baseline.md`·`evidence-gate.md`는 dispatch 대상이 아니라 그 reviewer들이 Read하는 공유 규약이다. 어느 reviewer가 무엇을 읽는지는 `skills/codebase-review/SKILL.md`가 정한다.
 - 리뷰 orchestration는 `skills/codebase-review/SKILL.md`를 기준으로 한다.
 - `review-forever`는 review 결과를 수정·재검증하는 독립 loop다.
 - persona 경계와 산출물 계약는 `skills/persona-test/SKILL.md`를 기준으로 한다.
@@ -15,7 +16,7 @@
   - build가 구현하지 않는 것과 시크릿 값 규칙: `skills/project/hard-gates.md`
   - 후속 이슈 종류별 양식: `skills/project/followup-issues.md`
   - 이슈 등록 공통 규약(컨벤션·중복·폴백): `skills/project/issue-registration.md`
-- 각 skill의 인자 문법·라우팅은 그 skill의 `SKILL.md`에 있다.
+- 각 skill의 인자 문법·라우팅은 그 skill의 `SKILL.md`에 있다. `codebase-review`만 인자 문법을 `references/args.md`로 내려 두었고, `SKILL.md`가 그것을 가리킨다.
 - `skills/*/references/*.md`는 일부 실행 경로만 도달하는 참조 문서다(예: `skills/project/references/interaction-baseline.md`). 해당 단계에서만 읽는다.
 
 사용자 공간의 동명 skill과 이 저장소의 skill은 독립적으로 변경된다.

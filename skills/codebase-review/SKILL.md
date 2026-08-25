@@ -8,7 +8,8 @@ description: "Use when the user asks for a codebase review, architecture audit, 
 도메인별 리뷰어로 코드를 종합 점검하는 스킬.
 리뷰어는 플러그인 에이전트가 아니라 `reviewers/*.md` 지침 문서다(Phase 3).
 
-**원문 전달**: 지침 문서와 이슈 맥락은 경로 또는 전문을 넘긴다. 이 계약은 Phase 3의 모든 dispatch에 걸린다.
+**원문 전달**: 지침 문서는 경로를, 기준 문서는 참조 또는 전문을 넘긴다 — 요약이나 발췌로 대체하지
+않는다. 이 계약은 Phase 3의 모든 dispatch에 걸린다.
 
 ## 리뷰 도메인
 
@@ -24,7 +25,9 @@ description: "Use when the user asks for a codebase review, architecture audit, 
 | security    | `reviewers/security.md`    | `## 보안 리뷰 결과`       |
 | conformance | `reviewers/conformance.md` | `## 기준 대조 리뷰 결과`  |
 
-`backend`·`frontend`는 데드코드·중복 렌즈의 공통 규약을 `reviewers/shared-lenses.md`에서 읽는다.
+`backend`·`frontend`는 데드코드·중복·문서 staleness 렌즈의 공통 규약을 `reviewers/shared-lenses.md`에서,
+코드 스멜 베이스라인을 `reviewers/smell-baseline.md`에서 읽는다.
+`backend`·`frontend`·`security`는 발견의 근거 인용 규칙을 `reviewers/evidence-gate.md`에서 읽는다.
 
 ## CLAUDE.md 연동
 
@@ -134,7 +137,24 @@ git diff --name-only --diff-filter=d <ref>...HEAD    # abc123 → abc123...HEAD
 
 3. 수집한 목록을 scope(`backend`/`frontend`)로 필터링한다.
 
-4. **가드레일 — 전체 스캔으로 폴백하지 않는다**
+4. **이슈 참조 추출** — `conformance`를 띄우는 실행에서만 한다.
+
+사용자가 인자로 이슈 번호·URL을 줬으면 그것을 쓴다. 없으면 커밋 메시지에서 찾는다.
+
+`<base-ref>`는 Phase 2-1이 탐지한 **base branch ref**다(`git diff` 인자가 아니다).
+인자로 revision을 받은 실행에서는 그 revision을 쓴다 — 범위 표현식(`main..HEAD`)이면 좌변이다.
+`--working`·`--staged`처럼 커밋이 아직 없는 모드에서는 검사할 커밋 메시지가 없으므로 추출을 건너뛴다.
+
+```bash
+git log <base-ref>..HEAD --format=%B
+```
+
+출력에서 이슈 참조(`#123`, `Closes #45`, `GH-12`, 트래커 URL 등)를 찾는다. 여러 개면 전부 넘긴다.
+**참조 문자열만 넘기고 조회는 리뷰어가 한다**(Phase 3).
+
+찾지 못하면 참조 없이 진행한다. 중단 사유가 아니다.
+
+5. **가드레일 — 전체 스캔으로 폴백하지 않는다**
 
 **가드레일은 scope 필터링 이후에 판정한다.** 필터링 전에 판정하면 "수집 30개 → scope 필터 후 0개"인
 경우를 놓쳐 에이전트가 빈 목록으로 돌고 전부 0인 '깨끗한' 리포트가 나온다.
@@ -194,7 +214,8 @@ Agent(subagent_type="general-purpose", prompt="
   base: {실제 사용한 git diff 인자 — 예: origin/main...HEAD (기본), HEAD (--working), --cached (--staged)}
   files:
   {대상 파일 목록 — mode=base-diff일 때만. 저장소 루트 기준 경로. 한 줄에 하나씩}
-  이슈 맥락: {사용자가 실행 인자로 넘겼으면 그대로. conformance에만 의미가 있고 나머지는 무시한다. 없으면 이 줄을 뺀다}
+  이슈 참조: {이슈 번호·URL. conformance에만 의미가 있고 나머지는 무시한다. 없으면 이 줄을 뺀다}
+  이슈 본문: {사용자가 본문을 직접 붙여넣은 경우에만 그대로. 그 외에는 이 줄을 뺀다}
 
   ## 리뷰 범위 계약
   - mode=base-diff: 위 `files` 목록에 있는 파일만 리뷰 대상이다. 발견 사항은 반드시
@@ -220,20 +241,37 @@ Agent(subagent_type="general-purpose", prompt="
 ")
 ```
 
-**`conformance`에게 추가로 전달하는 것** — 이슈 맥락은 **사용자가 실행 인자로 직접 넘긴 경우에만**
-들어온다. **이슈 본문·수용 기준·핵심 사용자 흐름 단계**를 받았으면 위 `이슈 맥락`에 원문 전달한다.
-그 외의 실행(인자 없는 실행, `review-forever` 호출)에서는 그 줄을 빼고, 리뷰어는 저장소
-문서(PRD·design-guide)만으로 판정한다.
-**빌더의 Coverage Plan·Audit 표는 conformance에 넘기지 않는다** — 넘기면 독립 평가가 자기채점으로
-돌아간다(그 문서의 "기준은 둘이고 층이 다르다" 절).
+**`conformance`에게 추가로 전달하는 것 — 기준을 요약해서 넘기지 않는다.**
 
-**`backend`·`frontend`에게 추가로 전달하는 줄** (둘 다 데드코드·중복 렌즈를 갖는다.
-`security`·`conformance`에는 넘기지 않는다):
+**`이슈 참조`가 기본 경로다.** Phase 2가 추출한 참조(또는 사용자가 인자로 준 이슈 번호·URL)를
+그대로 한 줄로 넘긴다. 이슈 전문을 읽어 요구 항목을 추리는 것은 **리뷰어의 일이다** —
+근거는 그 문서의 「1차 기준을 스스로 조회한다」 절에 있다.
+
+**빌더의 Coverage Plan·Audit 표는 넘기지 않는다** — 넘기면 독립 평가가 자기채점으로 돌아간다
+(그 문서의 "기준은 둘이고 층이 다르다" 절).
+
+**`이슈 본문`은 사용자가 본문을 직접 붙여넣은 경우에만 넘긴다** — 그건 사용자가 정한 기준이다.
+이 세션이 조회해서 요약하거나 발췌해 채우지 않는다.
+
+참조도 본문도 없으면(인자 없는 실행에서 추출 실패, `review-forever` 호출) 두 줄을 다 빼고,
+리뷰어는 저장소 문서(PRD·design-guide)만으로 판정한다.
+
+**`backend`·`frontend`·`security`에게 추가로 전달하는 줄** (`conformance`는 기준 문서 인용이라는
+자기 규칙을 쓰므로 넘기지 않는다):
+
+```
+  ## 근거 인용 게이트
+  발견을 리포트에 올리기 전에 `{리뷰어 디렉터리}/evidence-gate.md`를 Read해서 그대로 따르라.
+```
+
+**`backend`·`frontend`에게 추가로 전달하는 줄** (둘 다 데드코드·중복·문서 staleness 렌즈와 코드 스멜
+베이스라인을 갖는다. `security`·`conformance`에는 넘기지 않는다):
 
 ```
   ## 공통 렌즈 규약
-  데드코드·중복 렌즈는 `{리뷰어 디렉터리}/shared-lenses.md`도 Read해서 그대로 따르라.
+  데드코드·중복·문서 staleness 렌즈는 `{리뷰어 디렉터리}/shared-lenses.md`도 Read해서 그대로 따르라.
   보고 범위의 예외는 그 문서가 정의한 데드코드 1홉 하나뿐이다.
+  코드 스멜은 `{리뷰어 디렉터리}/smell-baseline.md`도 Read해서 그대로 따르라.
 ```
 
 **대상 파일 목록은 전부 전달한다.** 목록이 프롬프트에 다 들어가지 않을 만큼 크면 중단하고 사용자에게
@@ -254,7 +292,7 @@ Agent(subagent_type="general-purpose", prompt="
 
 ### Phase 4: 결과 종합
 
-**리포트 양식·대시보드 상태 표기는 `references/report-format.md`를 읽고 따른다.**
+**리포트 양식·대시보드 상태 표기·도메인 교차 발견 처리는 `references/report-format.md`를 읽고 따른다.**
 
 **`REVIEW_STATUS` 줄은 이 스킬을 감싸는 쪽을 위한 것이다.** 세 값만 쓴다:
 
