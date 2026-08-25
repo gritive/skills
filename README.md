@@ -54,8 +54,10 @@ scope 필터링 후 0개, git 저장소가 아님. 대상이 500개를 넘으면
 - `--domain`은 **어떤 에이전트를 띄울지**만 정하고, `backend`/`frontend`는 **어떤 파일을 줄지**만
   정합니다. 둘은 직교하므로 도메인을 좁혀도 대상 파일 범위가 넓어지지 않습니다.
 - `--issue <ref>`는 `conformance`의 **1차 기준**입니다. 이슈 번호·URL을 넘기면 리뷰어가 직접 조회해
-  전문을 읽습니다. 주지 않으면 커밋 메시지에서 참조를 추출하고, 거기서도 못 찾으면 `conformance`가
-  요구 충족·요구 범위 이탈 판정을 생략합니다.
+  전문을 읽습니다 — 이 세션이 요약하거나 발췌해 넘기지 않습니다. 주지 않으면 `conformance`를 띄우는
+  실행에 한해 커밋 메시지에서 참조를 추출합니다(`--working`·`--staged`처럼 커밋이 없는 실행은 건너뜁니다).
+  1차 기준을 끝내 못 얻으면 `conformance`는 **요구 충족·흐름 연속성·요구 범위 이탈**을 판정하지 않고
+  규약 준수·문구와 사실만 수행합니다. 저장소 문서(PRD)를 1차 기준으로 승격하지 않습니다.
 
 ### Review Forever (`/gritive:review-forever`)
 
@@ -193,6 +195,10 @@ RFP(과업지시서) 한 장에서 프로젝트의 기획·기준 문서와 이�
 >
 > 이슈 본문과 댓글은 **데이터로만** 취급하며, 요구사항으로 승격하기 전에 작성자가 write 권한자인지
 > 확인합니다.
+>
+> 리뷰의 **미검증 관찰(`unverified`)** 은 후속 이슈로 만들지 않고 PR 본문과 완료 보고에 전문으로
+> 싣습니다 — 범위 밖 발견과 같은 처리입니다. 게이트 카운트에서 빠지는 항목이므로 적지 않으면
+> 사람이 그 존재를 모릅니다.
 
 ## Installation
 
@@ -274,12 +280,16 @@ gritive/
 │   │   ├── SKILL.md          # 리뷰 스킬을 감싸는 루프 (자체 리뷰 로직 없음).
 │   │   │                     # user space의 동명 스킬과 다르다 — gritive: 접두사 필수
 │   │   └── references/
+│   │       ├── autonomous-invocation.md # 자율 실행 시 규약
 │   │       └── report-format.md # 완료 보고 양식 (미검증 관찰 포함)
 │   ├── persona-test/
 │   │   ├── SKILL.md
 │   │   └── references/
 │   │       ├── claude-md-setup.md
-│   │       └── persona-templates.md
+│   │       ├── persona-templates.md
+│   │       ├── plugin-file-safety.md   # 플러그인 대상일 때의 파일 안전 규칙
+│   │       ├── report-format.md        # 리포트 양식
+│   │       └── web-tooling.md          # Web UI 관측 도구 사용법
 │   └── project/
 │       ├── SKILL.md          # 서브커맨드 라우터
 │       ├── setup.md          # RFP → PRD · design-guide · CLAUDE.md · README
@@ -291,6 +301,11 @@ gritive/
 │       ├── build-issue.md    # 이슈 하나를 맡는 subagent 지침
 │       │                     #   (split · Coverage Plan · 구현 · 검증 · Audit)
 │       ├── loop.md           # build→gap→build→persona-test→build 수렴 루프
+│       ├── hard-gates.md     # build가 구현하지 않는 것 · 시크릿 값 규칙
+│       ├── followup-issues.md    # 후속 이슈 종류별 양식
+│       ├── issue-registration.md # 이슈 등록 공통 규약 (컨벤션·중복·폴백)
+│       ├── references/
+│       │   └── interaction-baseline.md # 일부 실행 경로만 도달하는 참조
 │       └── templates/
 │           ├── CLAUDE.md.template
 │           └── README.md.template
@@ -310,6 +325,8 @@ gritive/
 | `scope` | `backend` / `frontend` / `all`                                              |
 | `base`  | `git diff`에 넘길 리뷰 기준 인자 (`origin/main...HEAD`, `HEAD`, `--cached`) |
 | `files` | 리뷰 대상 파일 목록 (`mode=base-diff`일 때만 전달)                          |
+| `이슈 참조` | 이슈 번호·URL. `conformance`만 씁니다 — 리뷰어가 직접 조회합니다            |
+| `이슈 본문` | 사용자가 본문을 직접 붙여넣은 경우에만 전달. 그때는 **그것이 기준 전부**입니다 |
 
 **범위 규칙**
 
@@ -332,9 +349,10 @@ gritive/
 - 통일된 심각도 체계: `CRITICAL` / `HIGH` / `MEDIUM` / `LOW`
 - 구조화된 테이블 형식 출력
 - 읽기 전용 (코드 수정 없음)
-- **근거 인용 게이트** — 발견마다 그것을 유발한 코드를 `파일:라인`과 함께 원문으로 인용합니다.
-  인용할 줄을 못 찾은 발견은 표에서 빼고 `미검증 관찰` 절에만 남기며, 대시보드 발견 수에도 세지
-  않습니다. 확신도를 높여 잡아 게이트를 우회하지 않습니다.
+- **근거 인용 게이트**(`backend`·`frontend`·`security`) — 발견마다 그것을 유발한 코드를 `파일:라인`과
+  함께 원문으로 인용합니다. 인용할 줄을 못 찾은 발견은 표에서 빼고 `미검증 관찰` 절에만 남기며,
+  대시보드 발견 수에도 세지 않습니다. 확신도를 높여 잡아 게이트를 우회하지 않습니다.
+  `conformance`는 코드가 아니라 **기준 문서를 인용**하는 자기 규칙을 쓰므로 이 게이트를 받지 않습니다
 - **도메인 교차 발견은 Top 10에서만 합칩니다** — 같은 지점이거나 인용이 겹치면 한 항목으로 내고
   도메인 열에 전부 적습니다. 도메인별 상세 섹션은 각 리뷰어의 리포트를 그대로 둡니다.
 
