@@ -141,8 +141,12 @@ git diff --name-only --diff-filter=d <ref>...HEAD    # abc123 → abc123...HEAD
 
 사용자가 인자로 이슈 번호·URL을 줬으면 그것을 쓴다. 없으면 커밋 메시지에서 찾는다.
 
+`<base-ref>`는 Phase 2-1이 탐지한 **base branch ref**다(`git diff` 인자가 아니다).
+인자로 revision을 받은 실행에서는 그 revision을 쓴다 — 범위 표현식(`main..HEAD`)이면 좌변이다.
+`--working`·`--staged`처럼 커밋이 아직 없는 모드에서는 검사할 커밋 메시지가 없으므로 추출을 건너뛴다.
+
 ```bash
-git log <base>..HEAD --format=%B
+git log <base-ref>..HEAD --format=%B
 ```
 
 출력에서 이슈 참조(`#123`, `Closes #45`, `GH-12`, 트래커 URL 등)를 찾는다. 여러 개면 전부 넘긴다.
