@@ -13,10 +13,14 @@
 
 | 도메인   | 지침 문서               | 점검 항목                                                                                    |
 | -------- | ------------------- | -------------------------------------------------------------------------------------------- |
-| Backend  | `reviewers/backend.md`  | 구조(계층·순환 의존) / 리팩토링(중복·복잡도·네이밍) / 데드코드 / 성능(N+1·인덱스·메모리·동시성) |
-| Frontend | `reviewers/frontend.md` | 구조·품질(컴포넌트·타입·상태·a11y WCAG 2.2·SSR·i18n) / 리팩토링 / 데드코드 / 성능(CWV·번들·렌더링) |
+| Backend  | `reviewers/backend.md`  | 구조(계층·순환 의존) / 리팩토링(중복·복잡도·코드 스멜·네이밍) / 데드코드 / 성능(N+1·인덱스·메모리·동시성) / 문서 staleness |
+| Frontend | `reviewers/frontend.md` | 구조·품질(컴포넌트·타입·상태·a11y WCAG 2.2·SSR·i18n) / 리팩토링(중복·복잡도·코드 스멜) / 데드코드 / 성능(CWV·번들·렌더링) / 문서 staleness |
 | Security | `reviewers/security.md` | 인증/인가, 입력 검증, 주입 공격, 공급망, 시크릿, OWASP Top 10:2025                            |
-| Conformance | `reviewers/conformance.md` | **기준 문서 대조** — 요구 충족 / design-guide 규약 준수 / 흐름 연속성 / 문구와 사실 |
+| Conformance | `reviewers/conformance.md` | **기준 문서 대조** — 요구 충족 / design-guide 규약 준수 / 흐름 연속성 / 문구와 사실 / 요구 범위 이탈 |
+
+`backend`·`frontend`는 데드코드·중복·문서 staleness 렌즈의 공통 규약을 `reviewers/shared-lenses.md`에서,
+코드 스멜 목록을 `reviewers/smell-baseline.md`에서 읽습니다. `backend`·`frontend`·`security`는 발견의
+근거 인용 규칙을 `reviewers/evidence-gate.md`에서 읽습니다.
 
 > 리뷰어는 **플러그인 에이전트가 아니라 `codebase-review` 하위 문서**입니다 — dispatch된 subagent가
 > Read해서 수행합니다. Codex 배포본은 `skills`만 싣기 때문에, 에이전트로 두면 그쪽에서 dispatch
@@ -31,6 +35,7 @@
 /codebase-review --staged                 # 스테이징된 변경분
 /codebase-review backend                  # base diff 중 백엔드 파일만, Frontend 도메인 제외
 /codebase-review --domain backend,security # base diff 대상, 특정 도메인만
+/codebase-review --issue 123              # conformance의 1차 기준이 될 이슈 참조
 ```
 
 base branch는 `origin/HEAD` → `origin/main` → `origin/master` → `main` → `master` 순으로 탐지합니다.
@@ -48,6 +53,9 @@ scope 필터링 후 0개, git 저장소가 아님. 대상이 500개를 넘으면
 - `full`과 git revision(또는 `--working` / `--staged`)을 **함께 주면 오류**입니다. 모드가 상충합니다.
 - `--domain`은 **어떤 에이전트를 띄울지**만 정하고, `backend`/`frontend`는 **어떤 파일을 줄지**만
   정합니다. 둘은 직교하므로 도메인을 좁혀도 대상 파일 범위가 넓어지지 않습니다.
+- `--issue <ref>`는 `conformance`의 **1차 기준**입니다. 이슈 번호·URL을 넘기면 리뷰어가 직접 조회해
+  전문을 읽습니다. 주지 않으면 커밋 메시지에서 참조를 추출하고, 거기서도 못 찾으면 `conformance`가
+  요구 충족·요구 범위 이탈 판정을 생략합니다.
 
 ### Review Forever (`/gritive:review-forever`)
 
@@ -76,6 +84,10 @@ scope 필터링 후 0개, git 저장소가 아님. 대상이 500개를 넘으면
 
 수정 전에 각 발견을 소스에서 검증합니다. 리뷰 스킬은 틀릴 수 있고, **오탐을 달래려고 코드를 바꾸는
 것이 가장 나쁩니다.** 틀린 발견은 기각하고 근거를 남겨 다음 패스에서 재사용합니다.
+
+**리포트의 `미검증 관찰`은 클린 판정 전에 한 번 더 봅니다.** 클린을 선언하기 전에 각 관찰의 근거
+인용을 다시 시도해서, 성공하면 고칠 것과 보고만 할 것으로 가르고 또 실패하면 완료 보고에 전문으로
+싣습니다. 인용이 어렵다는 이유로 발견이 조용히 사라지지 않게 하는 자리입니다.
 
 **"검사하지 않음"을 "발견 0건"으로 착각하지 않습니다.** 감싼 스킬이 "리뷰할 변경분 없음"이나
 "대상 없음"으로 중단하면 그것은 클린이 아닙니다. 한 줄도 리뷰하지 않고 "클린 달성"을 선언하는 것이
@@ -110,6 +122,11 @@ scope 필터링 후 0개, git 저장소가 아님. 대상이 500개를 넘으면
   구현자가 재현부터 다시 하지 않아도 됩니다
 - 페르소나는 하나씩 순차로 돌고 다음 페르소나 전에 세션을 끊습니다 — 두 번째부터
   "첫 사용 30초" 경험이 거짓이 되지 않게
+- **AI slop 관찰 축** — 빈 홍보성 문구, 잔존한 `Lorem ipsum`·`TODO`·더미 값, 모델 말투 누출,
+  장식 과잉, 템플릿 티, 출처 없는 가짜 구체성을 페르소나 눈에 보이는 표면(UI 문구·CLI 출력·API
+  메시지)에서 잡습니다. 기본 분류는 Friction이고 내용이 사실과 다르면 Bug로 올립니다.
+  본 문구를 그대로 인용하지 못하면 기록하지 않습니다. 코드 스타일은 대상이 아닙니다 —
+  그건 `codebase-review`가 봅니다
 
 ```
 /persona-test           # 인터페이스별 시나리오 실행
@@ -245,12 +262,19 @@ gritive/
 │   │   │   ├── backend.md    # 플러그인 에이전트가 아니다 — Codex 배포본이
 │   │   │   ├── frontend.md   # skills만 싣기 때문
 │   │   │   ├── security.md
-│   │   │   └── conformance.md # 기준 문서 대조 (코드 결함이 아니다)
+│   │   │   ├── conformance.md # 기준 문서 대조 (코드 결함이 아니다)
+│   │   │   ├── shared-lenses.md   # 데드코드·중복·문서 staleness 공통 규약
+│   │   │   ├── smell-baseline.md  # 코드 스멜 고정 목록 (backend·frontend)
+│   │   │   └── evidence-gate.md   # 근거 인용 게이트 · 미검증 관찰
 │   │   └── references/
-│   │       └── claude-md-setup.md
+│   │       ├── claude-md-setup.md
+│   │       ├── args.md        # 인자 문법 (scope · --domain · --issue)
+│   │       └── report-format.md # 리포트 양식 · 도메인 교차 발견 처리
 │   ├── review-forever/
-│   │   └── SKILL.md          # 리뷰 스킬을 감싸는 루프 (자체 리뷰 로직 없음).
-│   │                         # user space의 동명 스킬과 다르다 — gritive: 접두사 필수
+│   │   ├── SKILL.md          # 리뷰 스킬을 감싸는 루프 (자체 리뷰 로직 없음).
+│   │   │                     # user space의 동명 스킬과 다르다 — gritive: 접두사 필수
+│   │   └── references/
+│   │       └── report-format.md # 완료 보고 양식 (미검증 관찰 포함)
 │   ├── persona-test/
 │   │   ├── SKILL.md
 │   │   └── references/
@@ -308,6 +332,11 @@ gritive/
 - 통일된 심각도 체계: `CRITICAL` / `HIGH` / `MEDIUM` / `LOW`
 - 구조화된 테이블 형식 출력
 - 읽기 전용 (코드 수정 없음)
+- **근거 인용 게이트** — 발견마다 그것을 유발한 코드를 `파일:라인`과 함께 원문으로 인용합니다.
+  인용할 줄을 못 찾은 발견은 표에서 빼고 `미검증 관찰` 절에만 남기며, 대시보드 발견 수에도 세지
+  않습니다. 확신도를 높여 잡아 게이트를 우회하지 않습니다.
+- **도메인 교차 발견은 Top 10에서만 합칩니다** — 같은 지점이거나 인용이 겹치면 한 항목으로 내고
+  도메인 열에 전부 적습니다. 도메인별 상세 섹션은 각 리뷰어의 리포트를 그대로 둡니다.
 
 ## Development
 
