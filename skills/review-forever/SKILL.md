@@ -1,6 +1,6 @@
 ---
 name: review-forever
-description: "Use when the user wants a review skill run repeatedly until it comes back clean — fixing every finding along the way. Triggers on '/gritive:review-forever', '클린될 때까지 리뷰', 'keep reviewing until clean'."
+description: "Use when the user wants a review skill run repeatedly until it comes back clean, fixing every finding along the way — '클린될 때까지 리뷰', 'keep reviewing until clean'."
 ---
 
 # Review Forever

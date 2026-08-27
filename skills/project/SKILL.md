@@ -1,6 +1,6 @@
 ---
 name: project
-description: Use for RFP-driven project setup, PRD-to-issue conversion, baseline synchronization, implementation-gap analysis, autonomous backlog building, and convergence loops. Triggers on /project and setup, prd-to-issue, sync, gap, build, or loop requests.
+description: Use for RFP-driven project work — /project with setup, prd-to-issue, sync, gap, build, or loop. Bootstraps a PRD and issues from an RFP, analyzes implementation gaps, and burns the backlog down to merge.
 ---
 
 # project
@@ -28,7 +28,7 @@ RFP에서 프로젝트 문서와 이슈를 만들고 백로그를 자율 처리�
 - 중복된 `--skip-review`는 하나로 취급한다.
 - 허용되지 않은 토큰이나 정수가 둘 이상이면 usage를 출력하고 멈춘다.
 
-`--skip-review`는 코드 리뷰만 생략한다. 구현 검증·CI·PR·merge/deploy와 다른 중단 조건은 유지하며, `loop`는 이 플래그를 모든 내부 `build` 호출에 전달한다.
+`--skip-review`의 효과는 `build.md` 9.5단계가 정의한다. `loop`는 이 플래그를 모든 내부 `build` 호출에 그대로 전달한다.
 
 알 수 없는 subcommand에는 `알 수 없는 서브커맨드: <입력>`을 먼저 출력한 뒤 다음 usage를 출력한다.
 
