@@ -14,6 +14,7 @@
   - 이슈 하나의 구현·검증·audit: `skills/project/build-issue.md`
   - 수렴·위임 envelope: `skills/project/loop.md`
   - build가 구현하지 않는 것과 시크릿 값 규칙: `skills/project/hard-gates.md`
+  - 생산자에 소비처가 있는지: `skills/project/hollow-check.md`
   - 후속 이슈 종류별 양식: `skills/project/followup-issues.md`
   - 이슈 등록 공통 규약(컨벤션·중복·폴백): `skills/project/issue-registration.md`
 - 각 skill의 인자 문법·라우팅은 그 skill의 `SKILL.md`에 있다. `codebase-review`만 인자 문법을 `references/args.md`로 내려 두었고, `SKILL.md`가 그것을 가리킨다.

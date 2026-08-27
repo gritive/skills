@@ -1,6 +1,6 @@
 ---
 name: codebase-review
-description: "Use when the user asks for a codebase review, architecture audit, or says '코드 리뷰', '코드베이스 점검', 'codebase review', 'health check', 'code quality'."
+description: "Use when the user asks for a codebase review, architecture audit, health check, or code quality pass — '코드 리뷰', '코드베이스 점검'."
 ---
 
 # Codebase Review
