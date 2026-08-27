@@ -1,6 +1,6 @@
 {
   "name": "gritive",
-  "version": "0.4.43",
+  "version": "0.4.44",
   "description": "Comprehensive codebase review plugin with parallel reviewers, a review-until-clean loop, persona-based UX testing, and RFP-to-project bootstrapping workflows.",
   "author": {
     "name": "Choe, Cheng-Dae",
