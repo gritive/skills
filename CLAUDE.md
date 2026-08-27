@@ -4,6 +4,7 @@
 
 - `skills/codebase-review/reviewers/*.md`는 dispatch되는 읽기 전용 reviewer 지침이다. skill이나 plugin agent가 아니다. 그 디렉터리의 `shared-lenses.md`·`smell-baseline.md`·`evidence-gate.md`는 dispatch 대상이 아니라 reviewer가 Read하는 공유 규약이며, 각 문서 첫 줄이 자기 독자를 밝힌다.
 - project workflow는 `skills/project/SKILL.md`가 서브커맨드별 파일로 라우팅한다. 각 파일 첫 문단이 자기 담당 범위를 정한다.
+- `skills/project/templates/`는 대상 프로젝트에 생성할 `CLAUDE.md`·`README.md` 템플릿이며 이 저장소의 지침이 아니다.
 - `codebase-review`의 인자 문법만 `references/args.md`에 있다.
 
 ## Editing invariants
@@ -29,8 +30,12 @@ Reviewer를 추가·수정할 때 `skills/codebase-review/SKILL.md`를 읽는다
 
 ## Release
 
-version은 다음 세 파일에서 항상 함께 변경한다.
+`scripts/push.sh`가 patch를 bump하고 아래 세 파일을 함께 갱신한 뒤 커밋·push한다.
 
 - `.claude-plugin/plugin.json`
 - `.claude-plugin/marketplace.json`
 - `.codex-plugin/plugin.json`
+
+직전 커밋 메시지가 `chore: bump version`으로 시작할 때만 bump를 건너뛴다. 손으로 version을 올리고 push.sh를 돌리면 한 번 더 올라가므로 patch bump는 push.sh에 맡긴다.
+
+minor·major 변경은 세 파일을 직접 고치고 `chore: bump version to X.Y.Z`로 커밋한 뒤 push.sh를 돌린다.
