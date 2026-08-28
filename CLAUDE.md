@@ -5,7 +5,7 @@
 - `skills/codebase-review/reviewers/*.md`는 dispatch되는 읽기 전용 reviewer 지침이다. skill이나 plugin agent가 아니다. 그 디렉터리의 `shared-lenses.md`·`smell-baseline.md`·`evidence-gate.md`는 dispatch 대상이 아니라 reviewer가 Read하는 공유 규약이며, 각 문서 첫 줄이 자기 독자를 밝힌다.
 - project workflow는 `skills/project/SKILL.md`가 서브커맨드별 파일로 라우팅한다. 각 파일 첫 문단이 자기 담당 범위를 정한다.
 - `skills/project/templates/`는 대상 프로젝트에 생성할 `CLAUDE.md`·`README.md` 템플릿이며 이 저장소의 지침이 아니다.
-- `codebase-review`와 `review-forever`의 인자 문법은 각 skill의 `references/args.md`에 있다.
+- `codebase-review`의 인자 문법만 `references/args.md`에 있다.
 
 ## Editing invariants
 
