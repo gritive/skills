@@ -73,7 +73,7 @@
 ### 1. 백로그 fresh fetch
 
 - `gh issue list --state open`과 `gh project item-list <보드 번호> --owner <org> --format json`으로 매 턴 열린 이슈와 보드 항목을 함께 새로 조회한다. 이슈 번호로 대조해 보드 연결 여부와 `Status` 값을 판정한다.
-- **일반 이슈와 leaf의 build 후보는 `Status = Todo`이거나 보드에 없거나 `Status` 값이 없는 열린 이슈뿐이다.** 그 밖의 status를 가진 일반 이슈와 leaf는 새 개발 대상으로 선정하지 않는다.
+- **일반 이슈와 leaf의 build 후보는 `Status = Todo`·`In Progress`이거나 보드에 없거나 `Status` 값이 없는 열린 이슈다.** 그 밖의 status를 가진 일반 이슈와 leaf는 새 개발 대상으로 선정하지 않는다.
 - **에픽 root는 `Status = In Progress`여도 buildable 실행 그래프에 남긴다.** 에픽은 여러 leaf를 처리하는 동안 `In Progress`를 유지하므로, 이 상태를 이유로 root나 그 하위 이슈 탐색을 제외하지 않는다. 에픽 root의 후보 status는 `Todo`, 없음, `In Progress`다.
 
 ### 2. 처리 대상 선정 — 판정 근거는 이슈 본문이다
@@ -84,7 +84,7 @@
 
   | 클래스 | 식별 방법 | 제외 근거 |
   | --- | --- | --- |
-  | 다른 보드 상태 | 일반 이슈·leaf의 `Status`가 있고 `Todo`가 아님. 에픽 root의 `Status`가 있고 `Todo`·`In Progress`가 아님 | 새 개발 대상으로 선정하지 않는 workflow 상태 |
+  | 다른 보드 상태 | 일반 이슈·leaf·에픽 root의 `Status`가 있고 `Todo`·`In Progress`가 아님 | 새 개발 대상으로 선정하지 않는 workflow 상태 |
   | 게이트/결정 | 본문이 "코드 작업이 아니라 게이트/결정"류로 명시 | 하드 게이트(`hard-gates.md`) |
   | 자격 증명 | `[credential]` 접두어 / `needs-credential` 라벨 | 발급·설정은 사람 작업 |
   | `question` | `question` 라벨 | 9단계에서 루프가 만든 사람·고객의 몫이다. 고객이 답해 새 구현이 필요해지면 라벨을 뗀 별도 이슈로 온다 |
