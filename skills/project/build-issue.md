@@ -91,7 +91,7 @@ split 판정 → Coverage Plan → 구현 또는 기존 충족 확인 → 검증
 
 ### 4. size/cohesion 체크 — 필요하면 split/consolidate
 
-- 한 PR로 리뷰 가능한 범위를 넘으면 구현 전에 split한다: `gh issue create`로 서브이슈를 만들고 원 이슈에 "sub-tasks: #A #B" 코멘트를 남기며, 새 서브이슈 본문의 의존 섹션에 **`부모: #<원 이슈>`**를 적는다(`선행:`이 아니다 — split은 순서 관계가 아니라 상속 관계다).
+- 한 PR로 리뷰 가능한 범위를 넘으면 구현 전에 split한다: `gh issue create`로 하위 이슈를 만들고, 각 이슈의 database ID를 `gh api repos/{owner}/{repo}/issues/<하위 번호> --jq .id`로 얻어 `gh api --method POST repos/{owner}/{repo}/issues/<원 이슈 번호>/sub_issues -F sub_issue_id=<database ID>`로 원 이슈의 GitHub native sub-issue에 연결한다. `부모:` 본문 마커나 `sub-tasks` 코멘트로 관계를 대신하지 않는다. 생성 또는 연결 하나라도 실패하면 `stopped`로 반환하며, 관계 없이 생성된 이슈 번호를 근거에 적는다.
 - 에픽을 받았으면 오케스트레이터가 넘긴 기존 하위 이슈와 체크박스 대응을 먼저 대조한다. 이미 닫혔거나
   열린 하위 이슈가 소유한 범위는 다시 만들지 않고, 아직 어떤 하위 이슈도 소유하지 않은 남은 범위만
   split한다. 한 PR로 응집된 남은 범위면 에픽 자체에서 계속 구현한다.
