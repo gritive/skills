@@ -19,7 +19,7 @@
 
 - 템플릿 → 프로젝트 방향으로만 흐른다. 프로젝트 고유 내용은 절대 덮어쓰지 않는다.
 - 두 종류의 섹션을 구분한다:
-  - **공유 baseline 섹션** — Global Rules / Clean Architecture 원칙 / God Object 방지 / 개발 원칙 / 이슈 관리 / Architecture / 구현 기준. 프로젝트에 공통 적용되는 baseline 불릿을 담는다. 여기를 **불릿 단위로 보강**한다.
+  - **공유 baseline 섹션** — Clean Architecture 원칙 / God Object 방지 / 개발 원칙 / 이슈 관리 / Architecture / 구현 기준. 프로젝트에 공통 적용되는 baseline 불릿을 담는다. 여기를 **불릿 단위로 보강**한다.
   - **프로젝트 고유 슬롯 섹션** — 문서 라우팅 / Commands / 도메인 용어. 공유 소스가 없으므로 내용을 밀어넣지 않는다. 섹션 제목 자체가 통째로 없을 때만 사용자에게 추가 여부를 확인한다.
 
 ## 절차
