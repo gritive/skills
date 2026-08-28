@@ -8,8 +8,7 @@ description: "Use when the user asks for a codebase review, architecture audit, 
 도메인별 리뷰어로 코드를 종합 점검하는 스킬.
 리뷰어는 플러그인 에이전트가 아니라 `reviewers/*.md` 지침 문서다(Phase 3).
 
-**원문 전달**: 지침 문서는 경로를, 기준 문서는 참조 또는 전문을 넘긴다 — 요약이나 발췌로 대체하지
-않는다. 이 계약은 Phase 3의 모든 dispatch에 걸린다.
+**원문 전달**: 지침 문서는 경로를, 기준 문서는 참조 또는 전문을 넘긴다. 계약 전문은 Phase 3에 있다.
 
 ## 리뷰 도메인
 
@@ -33,9 +32,7 @@ description: "Use when the user asks for a codebase review, architecture audit, 
 
 모든 에이전트는 범용 점검 항목을 기본으로 수행하되, **프로젝트 CLAUDE.md를 읽고 Critical Rules, 보안/아키텍처 원칙을 자동 반영**한다.
 
-- 예시: CLAUDE.md에 `workspace_id 필수` 규칙이 있으면 → Security 에이전트가 쿼리별 필터링 누락 점검
-- 예시: CLAUDE.md에 `soft delete` 규칙이 있으면 → Architecture/Security 에이전트가 물리 삭제 사용 탐지
-- 예시: CLAUDE.md에 특정 프레임워크 패턴이 있으면 → 해당 도메인 에이전트가 패턴 준수 여부 점검
+각 리뷰어가 무엇을 반영하는지는 그 문서의 「프로젝트 규칙 로딩」 절이 정한다.
 
 > 프로젝트 CLAUDE.md 설정 가이드: `references/claude-md-setup.md` 참조.
 > 설정은 선택 사항이다 — CLAUDE.md에 규칙이 없어도 리뷰는 동작한다.
@@ -73,8 +70,7 @@ scope 필터로 빠질 파일을 세게 된다).
 - **프론트엔드 파일** = 컴포넌트·스타일·클라이언트 진입점. 확장자 목록 대신 프로젝트 구조에서 판단한다.
 - 애매하면 **띄운다.** 게이팅의 실패는 비용이고, 안 띄운 것의 실패는 놓친 결함이다.
 
-**띄우지 않은 도메인은 `N/A (대상 파일 없음)`으로 리포트에 남긴다** — 0건과 구분한다
-(`references/report-format.md`).
+띄우지 않은 도메인의 리포트 표기는 `references/report-format.md`의 대시보드 상태 표를 따른다 — 0건과 구분한다.
 
 ### Phase 2: 대상 파일 수집
 
@@ -108,8 +104,6 @@ git diff --name-only --diff-filter=d <base>...HEAD
 # --staged
 git diff --name-only --diff-filter=d --cached
 ```
-
-**`--diff-filter=d`(소문자)는 삭제된 파일을 제외한다.** 대문자 `D`는 삭제된 파일'만' 남긴다.
 
 **지정 revision**: `<git-rev>`에 `..`가 포함되어 있는지로 판별한다.
 
@@ -166,7 +160,7 @@ git log <base-ref>..HEAD --format=%B
 | **git diff 명령이 실패** | 중단. shallow clone(`--unshallow` 필요), orphan branch, unrelated histories에서 `no merge base`로 죽는다 |
 | 수집 결과 0개            | 중단. "리뷰할 변경분 없음"을 보고하고 `--working` 또는 `full` 사용을 제안                      |
 | **scope 필터링 후 0개**  | 중단. "변경 파일 N개가 모두 `{scope}` 밖"이라고 구분해서 보고하고 scope 변경을 제안            |
-| **문서·텍스트 전용**     | 에이전트를 하나도 띄우지 않고 `REVIEW_STATUS: no-target (문서·텍스트 전용 diff)`로 보고하고 끝낸다. **중단이 아니라 정상 종료다.** `--domain`으로 강제 지정했으면 이 조기 종료를 건너뛴다 |
+| **문서·텍스트 전용**     | Phase 1 「신호 게이팅」의 **전원** 행대로 처리한다                                             |
 | 대상 파일 500개 초과     | 사용자에게 확인 후 진행 (범위가 의도한 것인지 검증)                                            |
 
 ### Phase 3: 에이전트 병렬 실행
@@ -188,15 +182,11 @@ Agent 툴에는 `description`·`subagent_type`·`prompt`만 준다. `description
 **dispatch는 비동기다 — 스폰 호출의 반환값은 리포트가 아니다.** 리포트는 나중에 완료 알림으로
 도착한다. **띄운 도메인 전부의 완료 알림을 받은 뒤에 Phase 4로 간다.** 알림을 기다리지 않고 종합하면
 손에 리포트가 하나도 없어 Phase 4의 반환물 검증이 전 도메인을 무응답으로 판정하고, 멀쩡히 도는
-리뷰어를 두고 `aborted`가 나간다. 실제로 반복 관측된 실패다. 기다리는 동안 다른 작업을 해도 되지만
-Phase 4는 알림이 다 온 뒤에 시작한다.
+리뷰어를 두고 `aborted`가 나간다.
 
 **리뷰어는 플러그인 에이전트가 아니라 이 디렉터리의 문서다** — `reviewers/backend.md`,
 `reviewers/frontend.md`, `reviewers/security.md`, `reviewers/conformance.md`. subagent에 **경로를 넘기고
 Read해서 그대로 수행하게 한다**(원문 전달).
-
-**에이전트가 아니라 문서인 이유:** 플러그인 에이전트는 Claude Code 전용이고 `.codex-plugin/plugin.json`은
-`skills`만 싣는다. 문서로 두면 Codex 배포본에서도 돈다.
 
 `subagent_type`은 `general-purpose`를 쓴다. 리뷰는 코드를 읽고 판정하는 일이라 탐색 전용
 에이전트(Claude Code의 `Explore` 등)로는 수행되지 않는다 — 그런 에이전트는 위치를 찾아 돌려줄 뿐
@@ -258,24 +248,6 @@ Agent(subagent_type="general-purpose", prompt="
 참조도 본문도 없으면(인자 없는 실행에서 추출 실패, `review-forever` 호출) 두 줄을 다 빼고,
 리뷰어는 저장소 문서(PRD·design-guide)만으로 판정한다.
 
-**`backend`·`frontend`·`security`에게 추가로 전달하는 줄** (`conformance`는 기준 문서 인용이라는
-자기 규칙을 쓰므로 넘기지 않는다):
-
-```
-  ## 근거 인용 게이트
-  발견을 리포트에 올리기 전에 `{리뷰어 디렉터리}/evidence-gate.md`를 Read해서 그대로 따르라.
-```
-
-**`backend`·`frontend`에게 추가로 전달하는 줄** (둘 다 데드코드·중복·문서 staleness 렌즈와 코드 스멜
-베이스라인을 갖는다. `security`·`conformance`에는 넘기지 않는다):
-
-```
-  ## 공통 렌즈 규약
-  데드코드·중복·문서 staleness 렌즈는 `{리뷰어 디렉터리}/shared-lenses.md`도 Read해서 그대로 따르라.
-  보고 범위의 예외는 그 문서가 정의한 데드코드 1홉 하나뿐이다.
-  코드 스멜은 `{리뷰어 디렉터리}/smell-baseline.md`도 Read해서 그대로 따르라.
-```
-
 **대상 파일 목록은 전부 전달한다.** 목록이 프롬프트에 다 들어가지 않을 만큼 크면 중단하고 사용자에게
 범위 축소를 요청한다.
 
@@ -310,8 +282,7 @@ Agent(subagent_type="general-purpose", prompt="
 
 **반환물 검증 — 침묵을 0건으로 세지 않는다.** 종합 전에 도메인별 반환물이 지침 문서의 `## 출력 형식`
 헤더 줄로 시작하는 리포트인지 확인한다. 비교 대상은 「리뷰 도메인」 표의 **리포트 헤더 줄** 문자열
-그대로다(backend → `## 백엔드 리뷰 결과`, frontend → `## 프론트엔드 리뷰 결과`,
-security → `## 보안 리뷰 결과`, conformance → `## 기준 대조 리뷰 결과`). 헤더가 다르거나 반환물이
+그대로다. 헤더가 다르거나 반환물이
 비어 있거나 리포트 대신 진행 서술만 왔으면 그 도메인은 **실행되지 않은 것**이다.
 
 - 그 도메인은 대시보드에 `무응답`으로 남긴다(`references/report-format.md`). `0`으로 세지 않는다.
@@ -335,8 +306,8 @@ security → `## 보안 리뷰 결과`, conformance → `## 기준 대조 리뷰
 **검증**: `base-diff` 모드에서 변경 hunk 밖에 위치한 발견이 리포트에 등장하면 해당 항목을 제거한다.
 에이전트가 범위를 이탈한 것이다.
 
-**단 하나의 예외**: `reviewers/shared-lenses.md`가 정한 데드코드 근거 문구("{대상 파일}이 마지막
-참조를 제거함")를 명시한 항목은 hunk 밖이어도 **유지한다.** 근거가 없으면 제거한다.
+**단 하나의 예외**: `reviewers/shared-lenses.md`가 정한 데드코드 근거 문구를 명시한 항목은 hunk
+밖이어도 **유지한다.** 근거가 없으면 제거한다.
 
 ### Phase 5: 후속 조치 (선택)
 
@@ -349,9 +320,6 @@ security → `## 보안 리뷰 결과`, conformance → `## 기준 대조 리뷰
 
 ## 주의사항
 
-- **`base-diff`의 보고 단위는 변경 hunk다.** 900줄 파일에서 3줄만 고쳤으면 그 3줄과 그것이
-  만든 결함만 보고된다. 손대지 않은 기존 코드의 부채는 이 모드에서 나오지 않는다 —
-  코드베이스 전반의 부채를 보려면 `--full`을 쓴다.
-- **hunk만 읽는 것은 아니다.** 판정에 필요한 맥락은 파일 전체든 다른 파일이든 읽는다.
-  좁히는 것은 보고 범위이고, 읽기는 hunk 판정에 필요한 만큼만 넓힌다.
+- **`base-diff`의 보고 단위는 변경 hunk다.** 손대지 않은 기존 코드의 부채는 이 모드에서 나오지
+  않는다 — 코드베이스 전반의 부채를 보려면 `--full`을 쓴다.
 - 오탐(false positive) 가능성이 있으면 확신도를 명시한다.

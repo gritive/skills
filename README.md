@@ -280,14 +280,15 @@ gritive/
 │   │   ├── SKILL.md          # 리뷰 스킬을 감싸는 루프 (자체 리뷰 로직 없음).
 │   │   │                     # user space의 동명 스킬과 다르다 — gritive: 접두사 필수
 │   │   └── references/
+│   │       ├── args.md          # 인자 문법 · 스킬 이름 해석
 │   │       ├── autonomous-invocation.md # 자율 실행 시 규약
 │   │       └── report-format.md # 완료 보고 양식 (미검증 관찰 포함)
 │   ├── persona-test/
 │   │   ├── SKILL.md
 │   │   └── references/
 │   │       ├── claude-md-setup.md
+│   │       ├── observation-axes.md     # AI slop 판정 · 인터페이스별 관찰
 │   │       ├── persona-templates.md
-│   │       ├── plugin-file-safety.md   # 플러그인 대상일 때의 파일 안전 규칙
 │   │       ├── report-format.md        # 리포트 양식
 │   │       └── web-tooling.md          # Web UI 관측 도구 사용법
 │   └── project/
@@ -305,7 +306,10 @@ gritive/
 │       ├── followup-issues.md    # 후속 이슈 종류별 양식
 │       ├── issue-registration.md # 이슈 등록 공통 규약 (컨벤션·중복·폴백)
 │       ├── references/
-│       │   └── interaction-baseline.md # 일부 실행 경로만 도달하는 참조
+│       │   ├── completion-report.md   # build 완료 보고 항목
+│       │   ├── interaction-baseline.md # 일부 실행 경로만 도달하는 참조
+│       │   ├── issue-bundling.md      # 같은 변경 묶음 판정
+│       │   └── review-gate.md         # 리뷰 게이트 절차 (9.5단계)
 │       └── templates/
 │           ├── CLAUDE.md.template
 │           └── README.md.template

@@ -19,7 +19,7 @@
 
 ### 2. fresh eye subagent에 위임 (본 세션에서 직접 분석하지 않는다)
 
-- Agent 툴로 새 subagent를 dispatch한다. **이 단계를 생략하고 현재 대화 맥락에서 바로 분석하지 않는다.**
+- Agent 툴로 새 subagent를 dispatch하고, 분석은 전부 그 subagent가 한다.
 - **이미 fresh subagent로 실행 중이면(예: `project loop`이 gap을 subagent로 dispatch한 경우) 이 세션이 곧 fresh eye이므로, 내부에서 또 dispatch하지 말고 아래 항목을 직접 수행한다.**
 - 이유: 진행 중인 세션에는 이전 세션 요약, CLAUDE.md/README의 "구현 완료" 자체 서술 같은 선입견이 이미 쌓여 있다. 같은 컨텍스트에서 이어서 분석하면 그 선입견을 그대로 따라가 실제로는 미완성인 부분을 완료로 오판하기 쉽다. 사전 지식 없는 새 subagent가 처음부터 코드를 읽게 한다.
 - subagent 프롬프트에 반드시 아래 항목을 모두 명시한다:
