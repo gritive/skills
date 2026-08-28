@@ -73,7 +73,8 @@
 ### 1. 백로그 fresh fetch
 
 - `gh issue list --state open`과 `gh project item-list <보드 번호> --owner <org> --format json`으로 매 턴 열린 이슈와 보드 항목을 함께 새로 조회한다. 이슈 번호로 대조해 보드 연결 여부와 `Status` 값을 판정한다.
-- `In Progress`인 일반 이슈·leaf는 새 이슈 선정 전에 소유권을 대조한다. 작업 브랜치는 대상 프로젝트 관례를 따르되 이름에 `issue-<N>`을 독립된 구간으로 포함해야 한다. 해당 브랜치가 다른 worktree에서 checkout됐거나 open PR의 head면 진행 중이므로 제외한다. 브랜치가 이 저장소에만 남고 open PR이 없으면 그 브랜치를 checkout해 3단계 본문과 현재 diff를 다시 확인한 뒤 3.5단계부터 재개한다. 일치하는 local·remote 브랜치와 open PR이 모두 없으면 고아 선점이다 — `Todo`로 되돌리고 재조회로 확인한 뒤 이번 후보 판정을 다시 한다. 조회·복구가 실패하면 이슈 번호와 현재 상태를 보고하고 멈춘다.
+- 보드 항목 중 닫힌 이슈가 아직 `In Progress`면 중단된 완료 반영을 복구한다. `state_reason = completed`인 하위 이슈는 10단계의 에픽 체크박스도 갱신하고, 닫힌 항목의 status를 `Done`으로 바꾼 뒤 재조회해 확인한다. `not_planned`면 부모 체크박스는 건드리지 않고 status만 `Done`으로 맞춘다. 실패하면 이슈 번호와 현재 상태를 보고하고 멈춘다.
+- `In Progress`인 일반 이슈·leaf는 새 이슈 선정 전에 소유권을 대조한다. 작업 브랜치는 단독이면 `project/issue-<N>`, 묶음이면 정렬한 번호를 이은 `project/issues-<N>-<N>`이다. 해당 remote branch가 open PR의 head거나 다른 worktree에서 checkout됐으면 진행 중이므로 제외하고 완료 보고에 active claim으로 남긴다. 현재 저장소의 local branch가 그 remote branch를 추적하고 다른 worktree에서 쓰이지 않으면 checkout해 3단계 본문과 diff를 다시 확인한 뒤 3.5단계부터 재개한다. 일치하는 local·remote branch와 open PR이 모두 없으면 고아 선점이다 — `Todo`로 되돌리고 재조회로 확인한 뒤 후보 판정을 다시 한다. 조회·복구가 실패하면 이슈 번호와 현재 상태를 보고하고 멈춘다.
 - **일반 이슈와 leaf의 build 후보는 `Status = Todo`이거나 보드에 없거나 `Status` 값이 없는 열린 이슈뿐이다.** 그 밖의 status를 가진 일반 이슈와 leaf는 새 개발 대상으로 선정하지 않는다.
 - **에픽 root는 `Status = In Progress`여도 buildable 실행 그래프에 남긴다.** 에픽은 여러 leaf를 처리하는 동안 `In Progress`를 유지하므로, 이 상태를 이유로 root나 그 하위 이슈 탐색을 제외하지 않는다. 에픽 root의 후보 status는 `Todo`, 없음, `In Progress`다.
 
@@ -137,10 +138,11 @@ leaf로 소유하면 에픽 번호·막힌 대상과 함께 `stopped`로 보고�
 
 3단계 판정을 통과한 이슈마다 구현 전에 다음을 수행한다. 묶음이면 모든 이슈가 성공해야 한다.
 
-1. 대상 프로젝트 관례에 맞고 이름에 `issue-<N>`을 독립된 구간으로 포함한 작업 브랜치를 정한 뒤, 확정한 base에서 `git checkout -b <branch> origin/<base>`로 만든다. 묶음이면 모든 이슈 번호를 포함한다. **`git reset --hard` / `checkout -f` / `clean -fd` / `branch -D` / `push --force`는 이 루프에서 절대 쓰지 않는다.** 워킹 트리 때문에 깨끗한 checkout이 안 되면 보드 상태를 바꾸지 않고 멈춰 보고한다.
-2. 선택 이슈가 보드에 없으면 0단계에서 읽은 커맨드로 연결하고, `gh project item-list`를 다시 조회해 item ID를 얻는다. leaf를 선택했으면 모든 상위 에픽 root도 같은 보드에 연결돼 있는지 확인하고, 없으면 연결한다.
-3. `gh project item-edit --id <item ID> --project-id <project ID> --field-id <Status field ID> --single-select-option-id <In Progress option ID>`로 선택 이슈의 `Status`를 `In Progress`로 설정한다. leaf의 상위 에픽 root가 `Todo` 또는 status 없음이면 그 root도 `In Progress`로 설정하고, 이미 `In Progress`면 유지한다.
-4. 다시 조회해 선택 이슈와 모든 상위 에픽 root가 보드에 연결됐고 `Status = In Progress`인지 확인한다. 연결·설정·확인 중 하나라도 실패하면 이번 단계가 바꾼 status와 새 보드 연결을 직전 값으로 복구하고 재조회해 확인한다. base로 돌아가 빈 작업 브랜치를 `git branch -d <branch>`로 지운 뒤 멈추고 보고한다. 복구 확인도 실패하면 바뀐 이슈·필드·현재 값을 함께 보고한다.
+1. 단독이면 `project/issue-<N>`, 묶음이면 정렬한 번호를 이은 `project/issues-<N>-<N>`을 작업 브랜치로 정하고, 확정한 base에서 `git checkout -b <branch> origin/<base>`로 만든다. **`git reset --hard` / `checkout -f` / `clean -fd` / `branch -D` / `push --force`는 이 루프에서 절대 쓰지 않는다.** 워킹 트리 때문에 깨끗한 checkout이 안 되면 보드 상태를 바꾸지 않고 멈춰 보고한다.
+2. `git push --porcelain -u origin <branch>`로 빈 브랜치를 원격에 생성하고 출력이 `[new branch]`인지 확인한다. 이 생성은 같은 이름의 remote ref를 한 runner만 새로 만들 수 있게 하는 배타 claim이다. `[new branch]`가 아니면 보드 상태를 바꾸지 않고 base로 돌아가 local branch를 `git branch -d <branch>`로 지운 뒤 1단계를 fresh fetch한다 — 이미 존재하는 remote branch의 소유권을 가져오지 않는다.
+3. 선택 이슈가 보드에 없으면 0단계에서 읽은 커맨드로 연결하고, `gh project item-list`를 다시 조회해 item ID를 얻는다. leaf를 선택했으면 모든 상위 에픽 root도 같은 보드에 연결돼 있는지 확인하고, 없으면 연결한다.
+4. `gh project item-edit --id <item ID> --project-id <project ID> --field-id <Status field ID> --single-select-option-id <In Progress option ID>`로 선택 이슈의 `Status`를 `In Progress`로 설정한다. leaf의 상위 에픽 root가 `Todo` 또는 status 없음이면 그 root도 `In Progress`로 설정하고, 이미 `In Progress`면 유지한다.
+5. 다시 조회해 선택 이슈와 모든 상위 에픽 root가 보드에 연결됐고 `Status = In Progress`인지 확인한다. 연결·설정·확인 중 하나라도 실패하면 이번 단계가 바꾼 status와 새 보드 연결을 직전 값으로 복구하고 재조회해 확인한다. remote branch가 아직 `origin/<base>`와 같은 빈 claim이고 open PR이 없음을 확인한 뒤 `git push origin --delete <branch>`로 claim을 해제하고, base로 돌아가 local branch를 `git branch -d <branch>`로 지운다. 그 뒤 멈추고 보고한다. 복구 확인도 실패하면 바뀐 이슈·필드·현재 값을 함께 보고한다.
 
 선정 당시 `Todo` 또는 status 없음이던 모든 이슈가 보드에 연결되고 `In Progress`로 바뀐 것이 개발 시작 조건이다. 이미 `In Progress`인 에픽 root는 연결 상태를 확인하고 유지한다.
 
@@ -191,9 +193,10 @@ leaf로 소유하면 에픽 번호·막힌 대상과 함께 `stopped`로 보고�
 - `split`이면 PR 없이 **1단계로 돌아간다**(서브이슈가 다음 라운드의 대상이 된다). 묶음에서 `split`이
   나오면 변경이 같지 않았다는 뜻이다 — 묶음을 풀고 다음 라운드는 이슈 하나씩 처리한다.
 - `verified`이면 `git diff origin/<base>...HEAD`가 비어 있고 Audit의 모든 행이 `done`인지 이 세션이
-  확인한다. 확인되면 검증된 체크박스를 `- [x]`로 갱신하고, 아래 10단계의 **에픽 체크박스 갱신**과
-  같은 절차로 native parent 또는 기존 `부모:`가 가리키는 에픽의 대응 체크박스도 갱신한다. 아래 **완료
-  상태 반영**을 통과한 뒤 이슈를 닫고 PR·배포 없이 1단계로 돌아간다. 빈 이슈 브랜치는 base로 checkout한 뒤 `git branch -d <branch>`로 정리한다. diff가 있거나
+  확인한다. 확인되면 검증된 체크박스를 `- [x]`로 갱신하고 `gh issue close <N> --reason completed`로
+  닫은 뒤 재조회해 `state = CLOSED`, `state_reason = completed`인지 확인한다. 확인 뒤 아래 10단계의
+  **에픽 체크박스 갱신**과 **완료 상태 반영**을 수행하고 PR·배포 없이 1단계로 돌아간다. 종료·확인이
+  실패하면 부모 체크박스와 `Done`을 반영하지 않고 멈춰 보고한다. 빈 이슈 브랜치는 base로 checkout한 뒤 remote branch가 비어 있고 open PR이 없음을 확인해 삭제하고, local branch도 `git branch -d <branch>`로 정리한다. diff가 있거나
   Audit이 덜 끝났으면 유효한 `verified`가 아니므로 같은 이슈를 다시 dispatch한다.
 - `implemented`는 **Coverage Audit 표가 있고 모든 행이 `done`일 때만 9단계로 간다.**
   표는 subagent만 만든다 — 표가 없으면 구현이 게이트를 통과한 적이 없는 것이다.
@@ -269,9 +272,9 @@ subagent가 **`build-issue.md`를 Read해서** 수행하고, 위 반환 계약�
      트리거로 배포했을 수 있으나 이 루프는 검증하지 않았다"**라고 적는다. **"배포 안 됨"으로 적지
      않는다** — 모르는 것과 안 한 것은 다르다.
 
-**에픽 체크박스 갱신:** merge가 확인되면 묶음의 이슈마다 수행한다. `verified` 이슈는 닫기 전에 같은 절차를 수행한다. `gh api repos/{owner}/{repo}/issues/<완료 이슈 번호>/parent`로 확인한 native parent가 있거나 기존 본문에 `부모: #<에픽>` 마커가 있으면, 에픽 본문에서 이 이슈에 대응하는 체크박스를 `- [x]`로 갱신한다(`gh issue edit <에픽>`). 대응 항목이 없으면 없는 체크박스를 만들지 않는다. 마지막 하위 이슈가 닫혀도 에픽은 여기서 자동 종료하지 않고 다음 fresh fetch에서 2단계 구현·검증 대상으로 돌아온다.
+**에픽 체크박스 갱신:** merge 또는 `verified` 종료가 확인되면 묶음의 이슈마다 수행한다. `gh api repos/{owner}/{repo}/issues/<완료 이슈 번호>/parent`로 확인한 native parent가 있거나 기존 본문에 `부모: #<에픽>` 마커가 있으면, 에픽 본문에서 이 이슈에 대응하는 체크박스를 `- [x]`로 갱신한다(`gh issue edit <에픽>`). 대응 항목이 없으면 없는 체크박스를 만들지 않는다. 마지막 하위 이슈가 닫혀도 에픽은 여기서 자동 종료하지 않고 다음 fresh fetch에서 2단계 구현·검증 대상으로 돌아온다.
 
-**완료 상태 반영:** merged 또는 `verified`인 각 이슈의 project item을 0단계에서 확인한 `Done` 옵션으로 바꾸고 다시 조회해 `Status = Done`인지 확인한다. `verified`는 확인 뒤 이슈를 닫고, merged 이슈는 merge로 닫힌 상태를 유지한다. 설정·확인이 실패하면 완료 처리를 계속하지 않고 이슈 번호·item ID·현재 status를 보고한다. 저장소의 Projects 자동화가 있더라도 이 확인을 생략하지 않는다.
+**완료 상태 반영:** 종료가 확인된 merged 또는 `verified` 이슈의 project item을 0단계에서 확인한 `Done` 옵션으로 바꾸고 다시 조회해 `Status = Done`인지 확인한다. 설정·확인이 실패하면 완료 처리를 계속하지 않고 이슈 번호·item ID·현재 status를 보고한다. 저장소의 Projects 자동화가 있더라도 이 확인을 생략하지 않는다.
 
 ### 11. 다음 이슈로
 

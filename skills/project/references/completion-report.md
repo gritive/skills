@@ -7,6 +7,7 @@
 - **선정 근거**: 이슈 우선순위를 읽었는지, 없어서 기능 우선으로 갔는지(2단계)
 - 에픽 정합성: 종결한 에픽, 준비된 하위 이슈, 미완료 에픽의 막힌 대상·해제 조건
 - 제외한 비에픽 이슈와 사유(다른 보드 status/게이트/결정대기 등)
+- 다른 worktree·remote branch·open PR이 소유한 active claim의 이슈 번호와 branch/PR 근거
 - **`build-blocked` 처리한 이슈 번호와 사유** — 어느 게이트에서 두 번 실패했는지
 - Coverage 결과: implemented / verified / split / blocked
 - **Hollow 점검 결과**(8단계): 이 이슈가 관리·생산 기능이면 소비처를 어디서 찾았는지(코드/백로그
