@@ -1,6 +1,8 @@
 # 이슈 등록 규약
 
 `prd-to-issue`·`gap`이 GitHub 이슈를 만들 때 공통으로 따르는 규약이다. `persona-test`도 이 규약을 따른다.
+active scope에서 호출됐으면 `references/issue-scope.md`도 읽고 새 이슈와 중복으로 접힌 기존 이슈 모두에
+원인 이슈와 관계 근거를 남겨 호출자가 scope에 편입할 수 있게 반환한다.
 
 ## 1. 프로젝트 이슈 관리 방식 로드
 

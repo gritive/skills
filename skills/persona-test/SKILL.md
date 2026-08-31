@@ -9,6 +9,12 @@ description: "Use when the user asks to test a service as a real customer, simul
 
 **핵심 원칙**: 이 스킬은 E2E 테스트가 아니다. "기능이 동작하는가?"가 아니라 **"이 서비스로 실제 업무를 할 수 있는가?"**를 검증한다.
 
+## 호출 범위
+
+기본은 감지된 서비스의 고객 여정 전체다. `project loop #N`이 active scope를 전달했으면
+`../project/references/issue-scope.md`를 읽고 scope의 요구사항으로 이어지는 사용자 여정만 테스트한다. 모든 scoped
+요구사항이 최소 한 persona 시나리오의 단계·관측 결과에 대응해야 완료다. 발견은 `scope_additions` 계약으로 반환한다.
+
 ## 산출물 디렉토리
 
 `~/.gritive/persona-test/{프로젝트}/{YYYYMMDD-HHMMSS}/`를 쓴다. **세션 시작에 한 번만 만들고 출력된

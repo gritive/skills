@@ -142,19 +142,20 @@ RFP(과업지시서) 한 장에서 프로젝트의 기획·기준 문서와 이�
 
 ```
 /project                    # 인자 없음 → loop 와 동일
+/project #10                # 이슈 #10 관련 이슈를 모두 처리 (`/project loop #10` 단축형)
 /project setup <RFP-path>   # RFP → PRD · design-guide · CLAUDE.md · README 생성
 /project prd-to-issue       # PRD를 의존성 순서 GitHub 이슈로 분해
 /project sync               # 공유 템플릿으로 프로젝트 CLAUDE.md/README 보강 (additive-only)
 /project gap                # RFP·PRD 대비 실제 구현 gap + UI 노출 여부 분석
 /project build [상한] [--skip-review]       # 이슈 백로그를 완전 자율로 burndown
-/project loop [라운드상한] [--skip-review]  # build→gap→build→persona-test→build를 수렴까지 반복
+/project loop [#이슈번호] [라운드상한] [--skip-review]  # #N이면 관련 이슈만, 숫자는 loop 상한
                             #   선정 순서는 이슈의 우선순위 → 없으면 기능 우선
 ```
 
 **`loop`** — 백로그를 태우는 것을 넘어 **더 만들 것이 없어질 때까지** 일감을 스스로 찾습니다. 한
 라운드는 `build`(백로그 소진) → `gap`(문서 대비 gap을 이슈로) → `build` → `persona-test`(고객 관점
 문제를 이슈로) → `build`이고, **한 라운드가 새 빌드가능 이슈를 하나도 만들지 못하면** 수렴·종료합니다.
-인자 없이 `/project`만 쳐도 `loop`로 갑니다.
+인자 없이 `/project`만 쳐도 전체 `loop`로 갑니다. `/project #10`과 `/project loop #10`은 parent/sub-issue·선행/후행·명시적 관련 링크와 scoped gap·design·persona 파생 이슈를 재귀적으로 처리하고, #10 관련 범위가 수렴하면 멈춥니다.
 
 수렴 안전장치(`review-forever`와 같은 불변식):
 

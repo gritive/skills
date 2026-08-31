@@ -11,12 +11,23 @@
 ## 입력
 
 - 대상은 **현재 작업 디렉터리**로 고정한다.
+- 대상 이슈 — 선택 인자(`/project loop #10`). `/project #10`은 같은 명령이다. 지정하면 **이슈 범위 모드**로
+  실행해 #10과 명시적으로 연결된 기존·파생 이슈를 모두 해결하고 멈춘다. 관계 없는 프로젝트 이슈는 선택하지 않는다.
 - 라운드 수 상한 — 선택 인자(`/project loop 2`). 없으면 기본 **10**. 이 값은 정상 종료점이 아니라
   **무한 루프 방지 backstop**이다 — 루프는 보통 그 전에 수렴으로 끝난다. 라운드마다 백로그 전체를
   소진하므로 무겁다는 점만 유의한다.
 - `--skip-review` — 선택 플래그. 모든 내부 `build` 호출에 그대로 전달한다. 효과는 `build.md` 9.5단계가
   정의한다. 예: `/project loop --skip-review`.
-- 선정 순서는 이슈의 우선순위를 따른다(`build.md` 2단계).
+- 선정 순서는 이슈의 우선순위를 따른다(`build.md` 2단계). 이슈 범위 모드에서는 관련 이슈 처리 집합 안에서만 이 순서를 적용한다.
+
+### 이슈 범위 모드 (`#N`)
+
+시작 전에 `gh issue view N`으로 열린 이슈인지 확인한다. 없거나 닫혔으면 보고하고 멈춘다. 그런 다음
+`references/issue-scope.md`를 읽고 seed #N의 active scope를 계산한다. 모든 build·gap·design·persona에 scope와
+관계 근거를 전달하고 각 Phase 뒤 폐쇄를 다시 계산한다. 관계 밖 이슈는 선택하거나 검사하지 않는다.
+
+라운드 상한을 함께 주면 scoped loop에 적용한다(예: `/project loop #10 3`). 없으면 기본 10이다. 상한은
+backstop이며, `issue-scope.md`의 scoped 수렴이 정상 종료점이다.
 
 ## 전제조건 — 없으면 시작하지 않는다
 
@@ -32,8 +43,8 @@
 
 ## 핵심 개념 — 실행 큐는 "새 빌드가능 이슈"다
 
-이 루프의 모든 판정(완료·정체·반복)은 gap/persona의 **원시 발견 수**가 아니라 **새로 만든 빌드가능
-이슈 수**로 잰다.
+전역 모드의 모든 판정(완료·정체·반복)은 gap/persona의 **원시 발견 수**가 아니라 **새로 만든 빌드가능
+이슈 수**로 잰다. 이슈 범위 모드는 이 절의 공식을 쓰지 않고 `issue-scope.md`의 scoped queue를 쓴다.
 
 ```
 실행 큐(라운드) = gap(Ng) + design-review(Nd) + persona(Np)
@@ -87,6 +98,7 @@ build가 **어느 경우에도 구현하지 않는** 이슈는 큐에서 뺀다.
 ### Phase A/B/C에서 build를 호출하는 법 — 결과를 반드시 구분한다
 
 **`Skill` 툴로 `gritive:project`의 `build`를 호출하고 그 지침을 그대로 수행한다**(= `build.md`).
+이슈 범위 모드에서는 `issue-scope.md`의 active scope를 내부 build 입력과 각 reviewer dispatch에 전달한다.
 위임하지 않는 이유는 이 문서 앞머리 참조. **각 Phase의 build는 인자 없이 호출해 백로그를 끝까지 드레인한다.** 이슈 수 상한을 주면 백로그가 부분만
 소진돼 "빌드가능 이슈 0" 판정이 거짓이 되고 큐 회계가 깨진다. (`/project build N`의 N은 loop의 라운드
 상한과 다른 값이다.)
@@ -100,7 +112,7 @@ build가 **어느 경우에도 구현하지 않는** 이슈는 큐에서 뺀다.
 | `outcome` | 루프의 처리 |
 | --- | --- |
 | `drained` | **다음 Phase로** |
-| `excluded_only` | **다음 Phase로** |
+| `excluded_only` | 전역 모드는 **다음 Phase로**. 이슈 범위 모드는 관련 제외 이슈의 번호·사유와 함께 `stopped`로 끝낸다 |
 | `stopped` | **루프 전체를 멈춘다.** gap/persona로 넘어가지 않고, 수렴 선언도 하지 않는다. build가 넘긴 중단 사유를 그대로 전하고 사용자 지시를 기다린다 |
 
 **판정은 `outcome` 한 줄로만 한다.** build는 못 고친 리뷰 발견과 범위 밖 발견을 완료 보고에 그대로
@@ -116,6 +128,7 @@ build가 **어느 경우에도 구현하지 않는** 이슈는 큐에서 뺀다.
 - 대상 저장소 경로와 적용되는 `AGENTS.md`·`CLAUDE.md`
 - 현재 라운드 번호와 이전 Phase 결과
 - 실행할 스킬 파일과 원문 반환 계약
+- 이슈 범위 모드면 `references/issue-scope.md` 원문, 현재 active scope 번호·관계 근거, 이 Phase의 scoped 검사 범위
 - 파일 탐색·편집 도구 규칙
 
 공통 반환 envelope는 gap과 persona에만 적용한다:
@@ -125,6 +138,7 @@ build가 **어느 경우에도 구현하지 않는** 이슈는 큐에서 뺀다.
 | `status` | `ok`, `degraded`, `blocked`, `failed` |
 | `created_issues` | 새 이슈 번호·제목·유형 |
 | `buildable_issues` | 그중 build 제외 클래스가 아닌 이슈 번호 |
+| `scope_additions` | 이슈 범위 모드에서 `issue-scope.md`가 정한 새 편입 이슈·관계 근거; 전역 모드는 `N/A` |
 | `persona_ran` | persona 실행 여부; gap은 `N/A` |
 | `coverage` | 검사한 문서·화면·흐름 |
 | `blocked` | 막힌 항목과 근거 |
@@ -135,8 +149,7 @@ subagent가 `blocked`·`failed` 또는 계약 누락을 반환하면 루프를 �
 ### Phase B — gap을 이슈로 (fresh subagent)
 
 위 "Phase B·C 위임" 절이 정한 방식으로 `gap`을 수행할 subagent를 dispatch한다(수행 문서: 이 디렉터리의 `gap.md`).
-gap은 문서 대비 gap을 **이슈로 등록하며, 같은 gap을 다루는 이슈가 있으면 그쪽에 접는다**(중복 제거 내장). 루프는 subagent가 돌려준 반환에서 **이번에 새로 만든 빌드가능 이슈**만 세어 `Ng`로 기록한다
-(제외 클래스 제외).
+gap은 문서 대비 gap을 **이슈로 등록하며, 같은 gap을 다루는 이슈가 있으면 그쪽에 접는다**(중복 제거 내장). 전역 모드는 새로 만든 빌드가능 이슈를 `Ng`로 기록한다. 이슈 범위 모드는 `scope_additions`의 이번 라운드 최초 편입 번호만 scoped queue에 센다.
 
 `fallback`은 `degraded`로 정규화한다. `blocked`·`degraded` 처리는 위 반환 계약을 따른다.
 
@@ -161,7 +174,7 @@ gap은 문서 대비 gap을 **이슈로 등록하며, 같은 gap을 다루는 �
     라벨 부착 실패는 등록 실패다.
 
 **반환 계약**: `design_ran` (true/false + false면 사유) / 만든 이슈 전체(번호·제목) / **그중 빌드가능
-번호 목록** / 중복이라 안 만든 수 / `degraded`.
+번호 목록** / 중복이라 안 만든 수 / `degraded` / 이슈 범위 모드면 `scope_additions`.
 **`Nd`는 `gap.md`·`design-review`에 없는 개념이므로 이 표를 dispatch 프롬프트에 그대로 붙여 넘긴다** —
 안 넘기면 원시 이슈 수를 `Nd`로 쓰거나 없는 값을 0으로 읽어 거짓 수렴한다.
 
@@ -177,8 +190,8 @@ gap은 문서 대비 gap을 **이슈로 등록하며, 같은 gap을 다루는 �
 명령(또는 `run` 스킬)으로 앱을 띄우고 접근 인터페이스(web URL/CLI)를 확인한 뒤 persona-test를 수행하라.
 기동하지 못하면 `persona_ran=false` + 사유로 반환하라"를 명시한다.
 
-- subagent가 `persona_ran=true`를 돌려주면: persona는 발견을 **동일성 키로 중복 제거해 새 것만 이슈로
-  등록했다.** 루프는 새로 만든 빌드가능 이슈를 세어 `Np`로 기록하고 `persona_ran = true`로 표시한다.
+- subagent가 `persona_ran=true`를 돌려주면 전역 모드는 새로 만든 빌드가능 이슈를 `Np`로 기록한다. 이슈
+  범위 모드는 `scope_additions`의 이번 라운드 최초 편입 번호만 scoped queue에 세고 `persona_ran = true`로 표시한다.
 - **접어 넣은 열린 이슈 번호는 "핵심 개념" 절의 큐 공식대로 `Np`에 더한다.** 공식이 빼는 번호는
   **"루프가 소비할 수 없는 이슈"로 종료 보고에 적는다** — 조용히 빼면 관측된 파손이 사라진 것과 같다.
 - `persona_ran=false`·`coverage=partial`·`blocked`·`degraded` 처리는 위 반환 계약 절이 정한다.
@@ -190,7 +203,8 @@ gap은 문서 대비 gap을 **이슈로 등록하며, 같은 gap을 다루는 �
 
 라운드가 끝나면(A~C 모두 통과, build 중단 없음) 판정한다:
 
-- **수렴(종료)**: **이번 라운드의 새 빌드가능 이슈가 0** **그리고** `persona_ran == true`. → 완료 보고를 내고 끝낸다.
+- **수렴(종료)**: 전역 모드는 이번 라운드의 새 빌드가능 이슈가 0, 이슈 범위 모드는 `issue-scope.md`의
+  scoped queue와 미완료 buildable이 모두 0, 그리고 `persona_ran == true`. → 완료 보고를 내고 끝낸다.
 - 아니면 다음 라운드로. 단 아래 중 하나면 **멈추고 보고한다**:
 
 | 중단 조건                                                                     | 이유                                                           |

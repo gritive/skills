@@ -16,7 +16,8 @@ RFP에서 프로젝트 문서와 이슈를 만들고 백로그를 자율 처리�
 | `sync` | `sync.md` |
 | `gap` | `gap.md` |
 | `build [상한] [--skip-review]` | `build.md` |
-| `loop [라운드상한] [--skip-review]` 또는 인자 없음 | `loop.md` |
+| `loop [#이슈번호] [라운드상한] [--skip-review]` 또는 인자 없음 | `loop.md` |
+| `#이슈번호` | `loop.md` (`loop #이슈번호`의 단축형) |
 
 해당 파일을 읽고 나머지 인자를 그대로 전달한다. 각 subcommand가 자신의 의존성과 중단 조건을 검사한다.
 
@@ -24,9 +25,10 @@ RFP에서 프로젝트 문서와 이슈를 만들고 백로그를 자율 처리�
 
 - `setup`: RFP 경로 하나를 요구한다.
 - `build`: 정수 상한 최대 하나와 `--skip-review`를 순서와 무관하게 받는다.
-- `loop`: 정수 라운드 상한 최대 하나와 `--skip-review`를 순서와 무관하게 받는다.
+- `loop`: `#`이 붙은 양의 이슈 번호 최대 하나, 정수 라운드 상한 최대 하나, `--skip-review`를 순서와 무관하게 받는다.
+- 첫 인자가 `#<양의 정수>`면 `loop #<양의 정수>`로 정규화한다. 예: `/project #10` = `/project loop #10`.
 - 중복된 `--skip-review`는 하나로 취급한다.
-- 허용되지 않은 토큰이나 정수가 둘 이상이면 usage를 출력하고 멈춘다.
+- 허용되지 않은 토큰, 이슈 번호가 둘 이상이거나 정수가 둘 이상이면 usage를 출력하고 멈춘다.
 
 `--skip-review`의 효과는 `build.md` 9.5단계가 정의한다. `loop`는 이 플래그를 모든 내부 `build` 호출에 그대로 전달한다.
 
@@ -39,5 +41,6 @@ RFP에서 프로젝트 문서와 이슈를 만들고 백로그를 자율 처리�
   sync
   gap
   build [상한] [--skip-review]
-  loop [라운드상한] [--skip-review]  # 기본
+  loop [#이슈번호] [라운드상한] [--skip-review]  # 기본
+  #이슈번호                                      # loop #이슈번호 단축형
 ```
