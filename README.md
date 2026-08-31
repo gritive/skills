@@ -309,6 +309,7 @@ gritive/
 │       ├── references/
 │       │   ├── completion-report.md   # build 완료 보고 항목
 │       │   ├── interaction-baseline.md # 일부 실행 경로만 도달하는 참조
+│       │   ├── issue-scope.md         # #N 관련 이슈의 재귀 범위 계산·수렴 계약
 │       │   ├── issue-bundling.md      # 같은 변경 묶음 판정
 │       │   └── review-gate.md         # 리뷰 게이트 절차 (9.5단계)
 │       └── templates/
