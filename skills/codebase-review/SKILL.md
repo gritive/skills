@@ -322,4 +322,3 @@ Agent(subagent_type="general-purpose", prompt="
 
 - **`base-diff`의 보고 단위는 변경 hunk다.** 손대지 않은 기존 코드의 부채는 이 모드에서 나오지
   않는다 — 코드베이스 전반의 부채를 보려면 `--full`을 쓴다.
-- 오탐(false positive) 가능성이 있으면 확신도를 명시한다.
