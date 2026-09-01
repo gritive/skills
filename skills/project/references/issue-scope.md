@@ -1,6 +1,6 @@
 # 이슈 범위 계약
 
-`project build #N`과 `project loop #N`의 `active scope`에서만 적용한다. 전역 실행에는 적용하지 않는다.
+`project build #N`과 `project loop #N`의 `scope`에서만 적용한다. 전역 실행에는 적용하지 않는다.
 
 ## 범위 계산
 
@@ -12,7 +12,7 @@
 - 닫힌 이슈는 관계 연결점으로만 유지하고 build 후보에서는 제외한다. `(from, to, relation_type, evidence)`를
   기록하는 worklist로 탐색한다. 방문한 모든 이슈에서 각 관계원을 조회했고 worklist가 비어야 폐쇄 계산 완료다.
   실행 순서를 정할 수 없는 dependency cycle은 `stopped`다.
-- build split/follow-up과 scoped gap·design·persona 발견이 만든 이슈, 중복 판정으로 접힌 기존 열린 이슈는
+- build split/follow-up과 scope 안 gap·design·persona 발견이 만든 이슈, 중복 판정으로 접힌 기존 열린 이슈는
   원인 이슈와 관계 근거를 남기고 scope에 편입한다. 각 Phase 뒤 폐쇄를 다시 계산한다.
 
 ## 실행 불변식
@@ -20,10 +20,10 @@
 Phase·라운드 수렴 항목은 `loop`가 소유한다. 단독 `build #N`은 범위 계산과 아래 build 불변식만 적용하고
 scope 안 buildable 이슈를 소진하면 끝난다.
 
-- 모든 후보 선정·우선순위·묶음은 active scope 안에서만 한다. 관계 없는 이슈를 같은 PR에 묶지 않는다.
-- gap은 scope의 요구사항과 구현 영역, design은 scoped build가 바꾼 UI, persona는 관련 사용자 흐름만 검사한다.
+- 모든 후보 선정·우선순위·묶음은 scope 안에서만 한다. 관계 없는 이슈를 같은 PR에 묶지 않는다.
+- gap은 scope의 요구사항과 구현 영역, design은 scope 안 build가 바꾼 UI, persona는 관련 사용자 흐름만 검사한다.
 - Phase 반환은 `scope_additions: [{issue, related_to, relation_type, evidence}]`를 포함한다. 새 생성 수가 아니라
-  이번 라운드에 처음 편입된 빌드가능 고유 번호 수가 scoped queue다.
-- scoped queue가 0, active scope의 미완료 buildable 이슈가 0, persona가 실제 실행된 라운드에서 수렴한다.
+  이번 라운드에 처음 편입된 빌드가능 고유 번호 수가 scope 큐다.
+- scope 큐가 0, scope의 미완료 buildable 이슈가 0, persona가 실제 실행된 라운드에서 수렴한다.
   scope 안에 build 제외 클래스가 남으면 `stopped`로 번호·사유를 보고한다.
 - build 완료 보고는 `scope: issue-closure:#N`을 포함한다. `drained`와 `excluded_only`는 이 scope 기준이다.

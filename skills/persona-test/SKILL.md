@@ -11,8 +11,8 @@ description: "Use when the user asks to test a service as a real customer, simul
 
 ## 호출 범위
 
-기본은 감지된 서비스의 고객 여정 전체다. `project loop #N`이 active scope를 전달했으면
-`../project/references/issue-scope.md`를 읽고 scope의 요구사항으로 이어지는 사용자 여정만 테스트한다. 모든 scoped
+기본은 감지된 서비스의 고객 여정 전체다. `project loop #N`이 scope를 전달했으면
+`../project/references/issue-scope.md`를 읽고 scope의 요구사항으로 이어지는 사용자 여정만 테스트한다. scope의 모든
 요구사항이 최소 한 persona 시나리오의 단계·관측 결과에 대응해야 완료다. 발견은 `scope_additions` 계약으로 반환한다.
 
 ## 산출물 디렉토리
@@ -124,10 +124,7 @@ Phase 4 PMF 체크리스트의 첫 항목이다. 그리고 관리자 → 실무�
 **페르소나는 한 번에 하나씩 순차로 돌린다.** Playwright MCP는 단일 브라우저 세션이라 동시 실행하면
 서로의 로그인·페이지 상태를 밟는다.
 
-### 시나리오 설계 원칙
-
-- 출발점은 해당 인터페이스의 **가장 자연스러운 진입점**
-- "기능이 동작하는가?"가 아니라 **"이 사람이 이 도구로 자기 업무를 자연스럽게 해결할 수 있는가?"**
+출발점은 각 인터페이스의 **가장 자연스러운 진입점**이다.
 
 ### 페르소나 역량으로 행동하기 (능력 제약)
 

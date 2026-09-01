@@ -6,7 +6,7 @@
 
 - 대상 프로젝트는 **현재 작업 디렉터리**다. 경로 인자는 받지 않는다.
 - 대상 이슈 — 선택 인자(`/project build #10`). 지정하면 **이슈 범위 모드**다. `project loop #N`의 내부
-  호출도 같은 active scope를 준다. 먼저 `references/issue-scope.md`를 읽고 모든 후보 선정·묶음·완료
+  호출도 같은 scope를 준다. 먼저 `references/issue-scope.md`를 읽고 모든 후보 선정·묶음·완료
   판정을 그 scope로 제한한다.
 - 처리할 이슈 수 상한 — 선택 인자(`/project build 3`). 없으면 자동 진행 중단 조건에 걸릴 때까지 계속.
   이슈 범위 모드에서는 scope 안에서 적용한다(예: `/project build #10 3`).
@@ -76,7 +76,7 @@
 
 ### 1. 백로그 fresh fetch
 
-- `gh issue list --state open`과 `gh project item-list <보드 번호> --owner <org> --format json`으로 매 턴 열린 이슈와 보드 항목을 함께 새로 조회한다. 이슈 번호로 대조해 보드 연결 여부와 `Status` 값을 판정한다. active scope가 있으면 매 fresh fetch 전에 `issue-scope.md`의 worklist가 빌 때까지 폐쇄를 다시 계산한 뒤 scope 밖 이슈를 후보와 묶음에서 제외한다.
+- `gh issue list --state open`과 `gh project item-list <보드 번호> --owner <org> --format json`으로 매 턴 열린 이슈와 보드 항목을 함께 새로 조회한다. 이슈 번호로 대조해 보드 연결 여부와 `Status` 값을 판정한다. scope가 있으면 매 fresh fetch 전에 `issue-scope.md`의 worklist가 빌 때까지 폐쇄를 다시 계산한 뒤 scope 밖 이슈를 후보와 묶음에서 제외한다.
 - **일반 이슈와 leaf의 build 후보는 `Status = Todo`·`In Progress`이거나 보드에 없거나 `Status` 값이 없는 열린 이슈다.** 그 밖의 status를 가진 일반 이슈와 leaf는 새 개발 대상으로 선정하지 않는다.
 - **에픽 root는 `Status = In Progress`여도 buildable 실행 그래프에 남긴다.** 에픽은 여러 leaf를 처리하는 동안 `In Progress`를 유지하므로, 이 상태를 이유로 root나 그 하위 이슈 탐색을 제외하지 않는다. 에픽 root의 후보 status는 `Todo`, 없음, `In Progress`다.
 
@@ -312,7 +312,7 @@ subagent가 **`build-issue.md`를 Read해서** 수행하고, 위 반환 계약�
 
 ## 완료 보고 (이슈 처리마다)
 
-기계 판정 계약은 `drained | excluded_only | stopped` 세 값만 사용한다. active scope를 받았으면 별도 줄에
+기계 판정 계약은 `drained | excluded_only | stopped` 세 값만 사용한다. scope를 받았으면 별도 줄에
 `scope: issue-closure:#N`도 명시한다. 세 outcome은 보고한 scope 기준이며, 전역 실행은 기존처럼 전체 백로그 기준이다.
 
 **마지막 이슈를 끝내거나 멈출 때는 아래 항목에 더해 `outcome`을 한 줄로 명시한다** —
