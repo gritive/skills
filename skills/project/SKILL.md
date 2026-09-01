@@ -15,7 +15,7 @@ RFP에서 프로젝트 문서와 이슈를 만들고 백로그를 자율 처리�
 | `prd-to-issue` | `prd-to-issue.md` |
 | `sync` | `sync.md` |
 | `gap` | `gap.md` |
-| `build [상한] [--skip-review]` | `build.md` |
+| `build [#이슈번호] [상한] [--skip-review]` | `build.md` |
 | `loop [#이슈번호] [라운드상한] [--skip-review]` 또는 인자 없음 | `loop.md` |
 | `#이슈번호` | `loop.md` (`loop #이슈번호`의 단축형) |
 
@@ -24,7 +24,7 @@ RFP에서 프로젝트 문서와 이슈를 만들고 백로그를 자율 처리�
 ## 인자 문법
 
 - `setup`: RFP 경로 하나를 요구한다.
-- `build`: 정수 상한 최대 하나와 `--skip-review`를 순서와 무관하게 받는다.
+- `build`: `#`이 붙은 양의 이슈 번호 최대 하나, 정수 상한 최대 하나, `--skip-review`를 순서와 무관하게 받는다.
 - `loop`: `#`이 붙은 양의 이슈 번호 최대 하나, 정수 라운드 상한 최대 하나, `--skip-review`를 순서와 무관하게 받는다.
 - 첫 인자가 `#<양의 정수>`면 `loop #<양의 정수>`로 정규화한다. 예: `/project #10` = `/project loop #10`.
 - 중복된 `--skip-review`는 하나로 취급한다.
@@ -40,7 +40,7 @@ RFP에서 프로젝트 문서와 이슈를 만들고 백로그를 자율 처리�
   prd-to-issue
   sync
   gap
-  build [상한] [--skip-review]
+  build [#이슈번호] [상한] [--skip-review]
   loop [#이슈번호] [라운드상한] [--skip-review]  # 기본
   #이슈번호                                      # loop #이슈번호 단축형
 ```

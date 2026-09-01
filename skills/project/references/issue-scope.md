@@ -1,6 +1,6 @@
 # 이슈 범위 계약
 
-`project loop #N`이 전달한 `active scope`에서만 적용한다. 전역 loop에는 적용하지 않는다.
+`project build #N`과 `project loop #N`의 `active scope`에서만 적용한다. 전역 실행에는 적용하지 않는다.
 
 ## 범위 계산
 
@@ -16,6 +16,9 @@
   원인 이슈와 관계 근거를 남기고 scope에 편입한다. 각 Phase 뒤 폐쇄를 다시 계산한다.
 
 ## 실행 불변식
+
+- Phase·라운드 수렴 항목은 `loop`가 소유한다. 단독 `build #N`은 범위 계산과 build 불변식만 적용하고
+  scope 안 buildable 이슈를 소진하면 끝난다.
 
 - 모든 후보 선정·우선순위·묶음은 active scope 안에서만 한다. 관계 없는 이슈를 같은 PR에 묶지 않는다.
 - gap은 scope의 요구사항과 구현 영역, design은 scoped build가 바꾼 UI, persona는 관련 사용자 흐름만 검사한다.

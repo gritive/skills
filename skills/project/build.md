@@ -7,8 +7,9 @@
 - 대상 프로젝트는 **현재 작업 디렉터리**다. 경로 인자는 받지 않는다.
 - 처리할 이슈 수 상한 — 선택 인자(`/project build 3`). 없으면 자동 진행 중단 조건에 걸릴 때까지 계속.
 - `--skip-review`의 효과는 9.5단계가 정의한다. 예: `/project build 3 --skip-review`.
-- `project loop #N`이 내부 호출할 때만 active scope를 받는다. 이 경우 먼저 `references/issue-scope.md`를 읽고,
-  모든 후보 선정·묶음·완료 판정을 그 scope로 제한한다. 사용자가 직접 주는 공개 `build` 인자는 아니다.
+- 대상 이슈 — 선택 인자(`/project build #10`). 지정하면 **이슈 범위 모드**다. `project loop #N`이 내부
+  호출할 때도 같은 active scope를 받는다. 두 경우 모두 먼저 `references/issue-scope.md`를 읽고, 모든 후보
+  선정·묶음·완료 판정을 그 scope로 제한한다. 상한을 함께 주면 scope 안에서 적용한다(예: `/project build #10 3`).
 
 ## 원칙
 
