@@ -5,7 +5,7 @@ PR 문장을 정한다.
 
 **공통:**
 
-1. **중복 확인이 먼저다.** 루프가 재개되면 같은 이슈에 두 번 오므로, `gh api repos/{owner}/{repo}/issues/<원 이슈 번호>/sub_issues --paginate`로 native sub-issue를 조회하고 종류까지 대조한다. 과거 이슈와의 호환을 위해 `gh issue list`에서 **`부모: #<원 이슈>` + 종류**도 함께 찾는다. 이미 있으면 새로 만들지 말고 본문을 갱신한다 — 한 원 이슈가 종류가 다른 항목을 여럿 낼 수 있어서 부모 관계만으로 대조하면 두 번째를 오탐으로 건너뛴다.
+1. **중복 확인이 먼저다.** 루프가 재개되면 같은 이슈에 두 번 오므로, `gh api repos/{owner}/{repo}/issues/<원 이슈 번호>/sub_issues --paginate`로 native sub-issue를 조회하고 종류까지 대조한다. 과거 이슈와의 호환을 위해 `gh api --paginate repos/{owner}/{repo}/issues?state=all&per_page=100`에서 **`부모: #<원 이슈>` + 종류**를 찾는다. 이미 있으면 새로 만들지 말고 본문을 갱신한다 — 한 원 이슈가 종류가 다른 항목을 여럿 낼 수 있어서 부모 관계만으로 대조하면 두 번째를 오탐으로 건너뛴다.
 2. 새 이슈를 만든 직후 `gh api repos/{owner}/{repo}/issues/<새 이슈 번호> --jq .id`로 database ID를 얻고, `gh api --method POST repos/{owner}/{repo}/issues/<원 이슈 번호>/sub_issues -F sub_issue_id=<database ID>`로 원 이슈의 GitHub native sub-issue에 연결한다. `부모:` 본문 마커는 새로 쓰지 않는다. 생성 또는 연결이 실패하면 멈추고, 관계 없이 생성된 이슈 번호를 보고한다. 원 이슈 PR 본문에서도 이 번호를 링크한다.
 3. **생성 즉시 `build.md` 0단계의 보드 연결 커맨드로 보드에 연결한다.**
 

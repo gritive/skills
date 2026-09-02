@@ -22,7 +22,7 @@
 
 ### 이슈 범위 모드 (`#N`)
 
-시작 전에 `gh issue view N`으로 열린 이슈인지 확인한다. 없거나 닫혔으면 보고하고 멈춘다. 그런 다음
+시작 전에 `gh api repos/{owner}/{repo}/issues/N`으로 열린 이슈인지 확인한다. 없거나 닫혔으면 보고하고 멈춘다. 그런 다음
 `references/issue-scope.md`를 읽고 seed #N의 scope를 계산한다. 모든 build·gap·design·persona에 scope와
 관계 근거를 전달하고 각 Phase 뒤 폐쇄를 다시 계산한다. 관계 밖 이슈는 선택하거나 검사하지 않는다.
 
@@ -94,6 +94,10 @@ build가 **어느 경우에도 구현하지 않는** 이슈는 큐에서 뺀다.
 ```
 
 라운드 시작 시 한 줄로 보고한다: `라운드 k/상한 시작`.
+
+### 보드 조회 예산
+
+각 내부 build는 열린 이슈 목록만 fresh fetch하고, 우선순위상 검토하는 후보·상위 에픽만 단건으로 재검증한다(`build.md` 1단계). Phase A/B/B′/C마다 `gh project item-list --limit 1000`를 호출하지 않는다. 새로 연결하거나 Status를 바꾼 항목도 단건 확인한다.
 
 ### Phase A/B/C에서 build를 호출하는 법 — 결과를 반드시 구분한다
 
