@@ -80,8 +80,8 @@
 - 매 턴 `gh api --paginate repos/{owner}/{repo}/issues?state=open&per_page=100`으로 열린 이슈를 새로 조회하고, `pull_request` 필드가 있는 항목은 뺀다. 열린/닫힌 이슈 상태는 이 REST 목록이 기준이다. scope가 있으면 매 fresh fetch 전에 `issue-scope.md`의 worklist가 빌 때까지 폐쇄를 다시 계산한 뒤 scope 밖 이슈를 후보와 묶음에서 제외한다.
 - 2단계에서 우선순위순 후보를 하나씩 검토할 때만 GitHub GraphQL의 `issue.projectItems`로 그 후보와 상위 에픽의 보드 item ID·프로젝트 번호·`Status`를 읽는다. 단건 결과로 후보 자격을 판정하고, 제외면 다음 후보를 본다. 이 조회가 Status의 fresh check다. 조회 형식은 [references/project-board-status.md](references/project-board-status.md)를 따른다.
 - `gh project item-list`는 이 단계에서 호출하지 않는다.
-- **일반 이슈와 leaf의 build 후보는 `Status = Todo`·`In Progress`이거나 보드에 없거나 `Status` 값이 없는 열린 이슈다.** 그 밖의 status를 가진 일반 이슈와 leaf는 새 개발 대상으로 선정하지 않는다.
-- **에픽 root는 `Status = In Progress`여도 buildable 실행 그래프에 남긴다.** 에픽은 여러 leaf를 처리하는 동안 `In Progress`를 유지하므로, 이 상태를 이유로 root나 그 하위 이슈 탐색을 제외하지 않는다. 에픽 root의 후보 status는 `Todo`, 없음, `In Progress`다.
+- **일반 이슈와 leaf의 build 후보는 `Status = Todo`이거나 보드에 없거나 `Status` 값이 없는 열린 이슈다.** `In Progress`는 다른 실행 세션이 소유한 작업이므로 새 개발 대상으로 선정하지 않는다.
+- **에픽 root도 `In Progress`면 선정하지 않는다.** `In Progress`인 에픽의 하위 이슈도 그 실행 범위에 속하므로 모두 제외한다. 에픽 root의 후보 status는 `Todo` 또는 없음이다.
 
 ### 2. 처리 대상 선정 — 판정 근거는 이슈 본문이다
 
@@ -91,7 +91,7 @@
 
   | 클래스 | 식별 방법 | 제외 근거 |
   | --- | --- | --- |
-  | 다른 보드 상태 | 일반 이슈·leaf·에픽 root의 `Status`가 있고 `Todo`·`In Progress`가 아님 | 새 개발 대상으로 선정하지 않는 workflow 상태 |
+  | 다른 보드 상태 | 일반 이슈·leaf·에픽 root의 `Status`가 있고 `Todo`가 아님, 또는 leaf의 상위 에픽이 `In Progress` | 다른 실행 세션이 소유했거나 새 개발 대상으로 선정하지 않는 workflow 상태 |
   | 게이트/결정 | 본문이 "코드 작업이 아니라 게이트/결정"류로 명시 | 하드 게이트(`hard-gates.md`) |
   | 자격 증명 | `[credential]` 접두어 / `needs-credential` 라벨 | 발급·설정은 사람 작업 |
   | `question` | `question` 라벨 | 9단계에서 루프가 만든 사람·고객의 몫이다. 고객이 답해 새 구현이 필요해지면 라벨을 뗀 별도 이슈로 온다 |
@@ -144,10 +144,10 @@ leaf로 소유하면 에픽 번호·막힌 대상과 함께 `stopped`로 보고�
 3단계 판정을 통과한 이슈마다 구현 전에 다음을 수행한다. 묶음이면 모든 이슈가 성공해야 한다.
 
 1. 선택 이슈가 보드에 없으면 0단계에서 읽은 커맨드로 연결하고, [references/project-board-status.md](references/project-board-status.md)의 단건 조회로 item ID를 얻는다. leaf를 선택했으면 모든 상위 에픽 root도 같은 보드에 연결돼 있는지 확인하고, 없으면 연결한다.
-2. `gh project item-edit --id <item ID> --project-id <project ID> --field-id <Status field ID> --single-select-option-id <In Progress option ID>`로 선택 이슈의 `Status`를 `In Progress`로 설정한다. leaf의 상위 에픽 root가 `Todo` 또는 status 없음이면 그 root도 `In Progress`로 설정하고, 이미 `In Progress`면 유지한다.
+2. `gh project item-edit --id <item ID> --project-id <project ID> --field-id <Status field ID> --single-select-option-id <In Progress option ID>`로 선택 이슈의 `Status`를 `In Progress`로 설정한다. leaf의 상위 에픽 root도 같은 커맨드로 `In Progress`로 설정한다 — 2단계가 `In Progress`인 에픽의 하위 이슈를 이미 제외하므로 여기 도달한 root의 status는 `Todo` 또는 없음이다.
 3. 단건 조회로 선택 이슈와 모든 상위 에픽 root가 보드에 연결됐고 `Status = In Progress`인지 확인한다. 연결·설정·확인 중 하나라도 실패하면 브랜치 생성·subagent dispatch 전에 멈추고 보고한다.
 
-선정 당시 `Todo` 또는 status 없음이던 모든 이슈가 보드에 연결되고 `In Progress`로 바뀐 것이 개발 시작 조건이다. 이미 `In Progress`인 에픽 root는 연결 상태를 확인하고 유지한다.
+선정 당시 `Todo` 또는 status 없음이던 모든 이슈가 보드에 연결되고 `In Progress`로 바뀐 것이 개발 시작 조건이다.
 
 확인이 끝나면 확정한 base에서 이슈별 작업 브랜치를 `git checkout -b <branch> origin/<base>`로 만든다. **`git reset --hard` / `checkout -f` / `clean -fd` / `branch -D` / `push --force`는 이 루프에서 절대 쓰지 않는다.** 워킹 트리 때문에 깨끗한 checkout이 안 되면 멈추고 보고한다.
 
@@ -191,10 +191,10 @@ leaf로 소유하면 에픽 번호·막힌 대상과 함께 `stopped`로 보고�
 | split함   | `split` + 생성한 서브이슈 번호·제목, 원 이슈에 남긴 코멘트. **구현은 하지 않는다**                                                                                                                                                                                 |
 | 구현함    | `implemented` + 5단계 Coverage Plan 표, 8단계 Coverage Audit 표, 변경 파일 목록, 7단계 검증 **실제 출력**, **이슈가 필요한 항목 목록**(종류: 자격 증명 / 스펙 결정 / Hollow 추적), (해당 시) design-guide 인터랙션 규약 절 부재 경고 |
 | 기존 구현으로 충족 | `verified` + 모든 행이 `done`인 Coverage Plan·Audit 표, 7단계 검증 **실제 출력**, 변경 파일 없음 |
+| 복구 필요 | `recovery_required` + `build-issue.md` 7단계가 정한 복구 보고. 원 이슈 변경은 커밋되지 않은 채로 온다 |
 | 제외·중단 | `stopped` + 어느 중단 조건인지와 근거                                                                                                                                                                                                                              |
 
-- **부분 구현은 반환 상태가 아니다** — `split`·`verified`·`implemented`·`stopped` 중 실제 종료
-  상태만 받는다. 남은 완료 조건을 subagent가 어떻게 재순환하는지는 `build-issue.md`의 절차가 정한다.
+- **부분 구현은 반환 상태가 아니다** — 위 표의 실제 종료 상태만 받는다. 남은 완료 조건을 subagent가 어떻게 재순환하는지는 `build-issue.md`의 절차가 정한다.
 - `split`이면 PR 없이 **1단계로 돌아간다**(서브이슈가 다음 라운드의 대상이 된다). 묶음에서 `split`이
   나오면 변경이 같지 않았다는 뜻이다 — 묶음을 풀고 다음 라운드는 이슈 하나씩 처리한다.
 - `verified`이면 `git diff origin/<base>...HEAD`가 비어 있고 Audit의 모든 행이 `done`인지 이 세션이
@@ -205,6 +205,19 @@ leaf로 소유하면 에픽 번호·막힌 대상과 함께 `stopped`로 보고�
   표는 subagent만 만든다 — 표가 없으면 구현이 게이트를 통과한 적이 없는 것이다.
   subagent를 같은 이슈로 한 번 더 dispatch하고, 두 번째도 표가 없으면 아래 "두 번 실패한 이슈"
   규칙대로 처리한다.
+
+- `recovery_required`이면 아래 "recovery_required 처리" 규칙대로 처리한다.
+
+**recovery_required 처리 — 막은 결함을 먼저 없애고 원 이슈로 돌아온다.** 원 이슈와 무관한 결함이
+검증을 막고 있다는 뜻이다.
+
+1. 보고된 결함에 해당하는 열린 bug 이슈를 찾고, 없으면 `gh issue create`로 만들어 보드에 연결한다.
+2. 원 이슈 브랜치의 WIP를 `git stash push -m <원 이슈 번호>`로 이름 있는 stash에 보존한다.
+3. recovery 이슈를 3.25단계부터 다시 태워 별도 브랜치에서 build → review → merge → deploy까지 끝낸다.
+4. 원 이슈 브랜치를 새 base에서 다시 만들고 2번 stash를 복원한 뒤, 원 이슈를 fresh subagent에 다시
+   dispatch한다.
+
+recovery 이슈 자체가 `stopped`로 돌아왔을 때만 루프가 멈춘다.
 
 **두 번 실패한 이슈 — 그냥 넘어가면 무한 재시도가 된다.** 위 게이트(Audit 표 부재)에서 두 번 연속
 실패한 이슈는 **다음 라운드 선정에서 다시 뽑힌다** — 백로그에 열린
