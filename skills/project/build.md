@@ -78,10 +78,8 @@
 ### 1. 백로그 fresh fetch
 
 - 매 턴 `gh api --paginate repos/{owner}/{repo}/issues?state=open&per_page=100`으로 열린 이슈를 새로 조회하고, `pull_request` 필드가 있는 항목은 뺀다. 열린/닫힌 이슈 상태는 이 REST 목록이 기준이다. scope가 있으면 매 fresh fetch 전에 `issue-scope.md`의 worklist가 빌 때까지 폐쇄를 다시 계산한 뒤 scope 밖 이슈를 후보와 묶음에서 제외한다.
-- 2단계에서 우선순위순 후보를 하나씩 검토할 때만 GitHub GraphQL의 `issue.projectItems`로 그 후보와 상위 에픽의 보드 item ID·프로젝트 번호·`Status`를 읽는다. 단건 결과로 후보 자격을 판정하고, 제외면 다음 후보를 본다. 이 조회가 Status의 fresh check다. 조회 형식은 [references/project-board-status.md](references/project-board-status.md)를 따른다.
+- 2단계에서 우선순위순 후보를 하나씩 검토할 때만 GitHub GraphQL의 `issue.projectItems`로 그 후보의 보드 item ID·프로젝트 번호·`Status`와 상위 에픽의 item ID를 읽는다. 단건 결과로 후보 자격을 판정하고, 제외면 다음 후보를 본다. 이 조회가 Status의 fresh check다. 조회 형식은 [references/project-board-status.md](references/project-board-status.md)를 따른다.
 - `gh project item-list`는 이 단계에서 호출하지 않는다.
-- **일반 이슈와 leaf의 build 후보는 `Status = Todo`이거나 보드에 없거나 `Status` 값이 없는 열린 이슈다.** `In Progress`는 다른 실행 세션이 소유한 작업이므로 새 개발 대상으로 선정하지 않는다.
-- **에픽 root도 `In Progress`면 선정하지 않는다.** `In Progress`인 에픽의 하위 이슈도 그 실행 범위에 속하므로 모두 제외한다. 에픽 root의 후보 status는 `Todo` 또는 없음이다.
 
 ### 2. 처리 대상 선정 — 판정 근거는 이슈 본문이다
 
@@ -91,7 +89,7 @@
 
   | 클래스 | 식별 방법 | 제외 근거 |
   | --- | --- | --- |
-  | 다른 보드 상태 | 일반 이슈·leaf·에픽 root의 `Status`가 있고 `Todo`가 아님, 또는 leaf의 상위 에픽이 `In Progress` | 다른 실행 세션이 소유했거나 새 개발 대상으로 선정하지 않는 workflow 상태 |
+  | 다른 보드 상태 | 일반 이슈·leaf의 `Status`가 있고 `Todo`가 아님 — 후보 자격은 `Todo`·보드 없음·`Status` 없음이다. 에픽 root의 `Status`는 판정에서 읽지 않는다: 에픽은 컨테이너라 leaf 하나가 진행 중이면 root도 `In Progress`가 되므로, leaf는 자기 status로만 판정한다 | `In Progress`는 다른 실행 세션이 소유한 작업이다 |
   | 게이트/결정 | 본문이 "코드 작업이 아니라 게이트/결정"류로 명시 | 하드 게이트(`hard-gates.md`) |
   | 자격 증명 | `[credential]` 접두어 / `needs-credential` 라벨 | 발급·설정은 사람 작업 |
   | `question` | `question` 라벨 | 9단계에서 루프가 만든 사람·고객의 몫이다. 고객이 답해 새 구현이 필요해지면 라벨을 뗀 별도 이슈로 온다 |
@@ -115,11 +113,18 @@
      이런 에픽이 남으면 `excluded_only`가 아니라 `stopped`로 에픽 번호와 막힌 대상·사유를 보고한다.
      미완료 제품 범위를 백로그 소진이나 수렴으로 세지 않는다.
 
+  **한 에픽을 잡으면 그 서브트리에 잠근다.** 어떤 에픽의 leaf를 구현 대상으로 올린 순간부터 그 에픽
+  서브트리가 후보 범위다. 다음 fresh fetch의 후보는 그 서브트리의 빌드가능 이슈로 한정하고, 3.5단계
+  split이 만든 새 leaf도 같은 서브트리라 우선순위를 이어받는다. 서브트리에 열린 하위 이슈가 0이 되면
+  같은 턴에 에픽 root를 위 2·3항의 구현·검증 대상으로 올려 종결한 뒤 잠금을 푼다. 서브트리의 남은
+  이슈가 전부 제외 클래스면 4항대로 `stopped`다. 다른 에픽·단독 이슈는 잠금이 풀린 뒤 우선순위로
+  돌아온다.
+
   **native parent와 기존 `부모:`는 차단이 아니다** — 부모 에픽은 원래 열려 있다(순서 마커는 `선행:`뿐이며,
   `prd-to-issue.md` 참조). `build-blocked`와 `선행:` blocked의 구분은 3.5단계가 정한다.
 
   - 프로젝트 고유 접두어(예: "(게이트 통과 후)")는 대상 CLAUDE.md의 비즈니스 규칙과 대조해 판단한다 — 실제 이슈 2~3개를 열어 컨벤션을 확인한 뒤 판단한다. "보류"를 뜻하면 그 접두어 이슈를 전부 제외하고, 어떤 규칙과도 대응되지 않으면 "결정 필요"와 동일하게 취급해 건너뛴다.
-  - **순서는 이슈의 우선순위를 먼저 따른다** — 라벨(`P0`~`P4` 등)이든 본문 필드든 그 저장소가 쓰는 표기를 3단계 컨벤션 확인과 같은 방식으로 읽는다. **우선순위 표기가 없는 저장소면 기능 우선이다** — 사용자에게 보이는 기능을 더하는 이슈를 먼저, 그다음 bug/정합성 결함, 그다음 나머지(리팩토링·문서·도구). 같은 등급 안에서는 이슈 번호 오름차순.
+  - **순서는 이슈의 우선순위를 먼저 따른다** — 라벨(`P0`~`P4` 등)이든 본문 필드든 그 저장소가 쓰는 표기를 3단계 컨벤션 확인과 같은 방식으로 읽는다. **우선순위 표기가 없는 저장소면 기능 우선이다** — 사용자에게 보이는 기능을 더하는 이슈를 먼저, 그다음 bug/정합성 결함, 그다음 나머지(리팩토링·문서·도구). 같은 등급 안에서는 이슈 번호 오름차순. 에픽 서브트리에 잠겨 있으면 이 순서는 그 서브트리 안에서만 적용한다.
   - "결정 필요"/"decision needed"가 본문에 있어도 **먼저 "자격 증명·고객 협의에 걸린 이슈" 절의 판정을 적용한다.** 리서치로 근거 있는 기본값을 뽑을 수 있고 하드 게이트가 아니면 **건너뛰지 말고 그 경로로 처리한다**(구현 + `question` 이슈). 하드 게이트면 **건너뛰고 보고에 남긴다.** 남은 이슈가 전부 이러면 멈추고 사용자에게 옵션을 제시한다.
 
   - **한 이슈의 변경을 대상만 바꿔 다른 이슈에도 그대로 적용할 수 있으면 묶어서 한 PR로 처리한다** —
@@ -144,10 +149,10 @@ leaf로 소유하면 에픽 번호·막힌 대상과 함께 `stopped`로 보고�
 3단계 판정을 통과한 이슈마다 구현 전에 다음을 수행한다. 묶음이면 모든 이슈가 성공해야 한다.
 
 1. 선택 이슈가 보드에 없으면 0단계에서 읽은 커맨드로 연결하고, [references/project-board-status.md](references/project-board-status.md)의 단건 조회로 item ID를 얻는다. leaf를 선택했으면 모든 상위 에픽 root도 같은 보드에 연결돼 있는지 확인하고, 없으면 연결한다.
-2. `gh project item-edit --id <item ID> --project-id <project ID> --field-id <Status field ID> --single-select-option-id <In Progress option ID>`로 선택 이슈의 `Status`를 `In Progress`로 설정한다. leaf의 상위 에픽 root도 같은 커맨드로 `In Progress`로 설정한다 — 2단계가 `In Progress`인 에픽의 하위 이슈를 이미 제외하므로 여기 도달한 root의 status는 `Todo` 또는 없음이다.
+2. `gh project item-edit --id <item ID> --project-id <project ID> --field-id <Status field ID> --single-select-option-id <In Progress option ID>`로 선택 이슈의 `Status`를 `In Progress`로 설정한다. leaf의 상위 에픽 root도 같은 커맨드로 `In Progress`로 설정한다 — 이미 `In Progress`면 그대로 둔다.
 3. 단건 조회로 선택 이슈와 모든 상위 에픽 root가 보드에 연결됐고 `Status = In Progress`인지 확인한다. 연결·설정·확인 중 하나라도 실패하면 브랜치 생성·subagent dispatch 전에 멈추고 보고한다.
 
-선정 당시 `Todo` 또는 status 없음이던 모든 이슈가 보드에 연결되고 `In Progress`로 바뀐 것이 개발 시작 조건이다.
+선택 이슈와 상위 에픽 root가 모두 보드에 연결되고 `In Progress`인 것이 개발 시작 조건이다.
 
 확인이 끝나면 확정한 base에서 이슈별 작업 브랜치를 `git checkout -b <branch> origin/<base>`로 만든다. **`git reset --hard` / `checkout -f` / `clean -fd` / `branch -D` / `push --force`는 이 루프에서 절대 쓰지 않는다.** 워킹 트리 때문에 깨끗한 checkout이 안 되면 멈추고 보고한다.
 
