@@ -52,7 +52,7 @@
   확인한다. 하나라도 없으면 멈추고 보고한다 — **리뷰는 그 리뷰어가 돌 때만 실행된 것이다.**
 - 대상 프로젝트 `CLAUDE.md`에 **`## Deploy` 절**이 있으면 배포 명령과 헬스체크 URL을 읽어 둔다.
   **없으면 그대로 진행한다** — 배포는 옵셔널이고, 없다는 사실만 완료 보고에 남긴다(10단계).
-- 대상 `CLAUDE.md`의 "이슈 관리" 섹션을 읽어 org·보드 번호, 보드 연결 커맨드, 의존 표기 컨벤션을 파악한다. `gh project view <보드 번호> --owner <org> --format json`으로 project ID를, `gh project field-list <보드 번호> --owner <org> --format json`으로 `Status` 필드와 `In Progress` 옵션의 ID를 확인한다.
+- 대상 `CLAUDE.md`의 "이슈 관리" 섹션을 읽어 org·보드 번호와 보드 연결 커맨드를 파악한다. `gh project view <보드 번호> --owner <org> --format json`으로 project ID를, `gh project field-list <보드 번호> --owner <org> --format json`으로 `Status` 필드와 `In Progress` 옵션의 ID를 확인한다.
   **섹션이 없거나 org·보드·`Status` 필드를 확정할 수 없으면 멈추고 보고한다.** 선택한 이슈를 보드에 연결하고 진행 상태를 반영한 뒤 개발을 시작한다.
 - **보드 전량 조회를 하지 않는다.** `gh project item-list --limit 1000`는 수백 항목 보드의 전체 pagination이라 후보 하나를 고르려고 GraphQL quota를 크게 쓴다. 선택 후보와 그 상위 에픽의 item ID·Status만 단건 조회한다.
 
@@ -94,7 +94,7 @@
   | 자격 증명 | `[credential]` 접두어 / `needs-credential` 라벨 | 발급·설정은 사람 작업 |
   | `question` | `question` 라벨 | 9단계에서 루프가 만든 사람·고객의 몫이다. 고객이 답해 새 구현이 필요해지면 라벨을 뗀 별도 이슈로 온다 |
   | `build-blocked` | `build-blocked` 라벨 | 3.5단계의 게이트에서 두 번 실패했거나 9.5단계 최신 base 통합·리뷰 재검증을 끝내지 못해 사람이 봐야 한다(3.5단계 "`build-blocked` 이슈") |
-  | 선행 미완 | `## 의존`의 `선행:` 대상이 아직 열려 있거나 미해결 결정 | 선행이 닫히면 저절로 풀린다 |
+  | 선행 미완 | `gh issue view <N> --json blockedBy,blocking`의 `blockedBy` 대상이 아직 열려 있음. native 관계가 없는 기존 이슈만 본문의 `선행:`을 읽기 호환으로 사용 | 선행이 닫히면 저절로 풀린다 |
 
   **에픽은 제외 클래스가 아니라 실행 그래프의 루트다.** `[Epic]` 접두어, native sub-issue, 본문의
   하위 작업 체크리스트 중 하나로 에픽임을 식별하고, fresh fetch마다 다음 순서로 정합성을 맞춘다.
@@ -123,8 +123,9 @@
   이슈가 전부 제외 클래스면 4항대로 `blocked`다. 전역 build는 잠금을 풀어 다른 에픽·단독 이슈의
   우선순위로 돌아가고, scope build는 그 범위의 `blocked`를 보고한다.
 
-  **native parent와 기존 `부모:`는 차단이 아니다** — 부모 에픽은 원래 열려 있다(순서 마커는 `선행:`뿐이며,
-  `prd-to-issue.md` 참조). `build-blocked`와 `선행:` blocked의 구분은 3.5단계가 정한다.
+  **native parent와 기존 `부모:`는 차단이 아니다** — 부모 에픽은 원래 열려 있다. 순서 관계는 native
+  `blockedBy`가 기준이고, 기존 `선행:`은 native 관계가 없는 이슈의 읽기 호환만 제공한다.
+  `build-blocked`와 dependency blocked의 구분은 3.5단계가 정한다.
 
   **전역 build의 보류 목록** — 이 호출에서 `blocked`가 된 에픽 root와 scope closure를 보류 목록에 넣고,
   이후 fresh fetch의 후보·묶음에서 제외한다. 그래야 같은 P1 에픽을 다시 잡아 무한 재시도하지 않고 독립
@@ -250,7 +251,7 @@ recovery 이슈 자체가 `stopped`로 돌아왔을 때만 루프가 멈춘다.
 확보하지 못하면 **멈추고 보고한다** — 그렇지 않으면 실패한 이슈가 아무도 모르게 백로그에서 죽거나 사용자
 변경을 침범한다. **완료 보고에 번호와 사유를 반드시 남긴다**(아래 완료 보고).
 
-**`build-blocked`는 사람만 뗀다** — `## 의존`의 `선행:` blocked(때가 되면 저절로 풀린다)와 회복
+**`build-blocked`는 사람만 뗀다** — dependency blocked(선행이 닫히면 저절로 풀린다)와 회복
 경로가 반대다. Audit 게이트 실패나 최신 base 통합·리뷰 재검증 실패는 이슈·구현·기존 코드의 판단이 더 필요하므로 자동
 재시도로는 안 풀린다. 사람이 이슈·작업 브랜치를 고치고 라벨을 떼면 다음 라운드에 평범한 대상으로 돌아온다.
 

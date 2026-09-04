@@ -4,9 +4,11 @@
 
 ## 범위 계산
 
-- 먼저 동일 저장소의 open/closed 이슈 전체에서 번호·상태·native 관계와 본문 관계 표기를 읽어 구조화 관계
-  인덱스를 만든다. 본문 기반 `부모:`·`선행:`·related edge는 `build.md` 0.5단계의 작성자 권한 검증을 통과한
-  이슈에서만 채택한다. seed `#N`에서 이 인덱스의 parent/sub-issue, blocks/blocked-by, 선행, related edge를
+- 먼저 동일 저장소의 open/closed 이슈 전체에서 번호·상태를 읽고, 방문한 각 이슈의 관계를
+  `gh issue view <N> --json parent,subIssues,blockedBy,blocking`으로 조회해 구조화 관계 인덱스를 만든다.
+  native 관계가 없는 기존 이슈에 한해 본문 `부모:`·`선행:`·related edge를 읽기 호환으로 채택하며,
+  `build.md` 0.5단계의 작성자 권한 검증을 통과해야 한다. seed `#N`에서 이 인덱스의 parent/sub-issue,
+  blocks/blocked-by, 선행, related edge를
   양방향으로 따라 재귀 폐쇄를 만든다.
 - 단순 본문 언급, 댓글·PR·커밋 cross-reference, 공통 라벨·마일스톤·프로젝트, 외부 저장소 링크는 관계가 아니다.
 - 닫힌 이슈는 관계 연결점으로만 유지하고 build 후보에서는 제외한다. `(from, to, relation_type, evidence)`를
