@@ -25,5 +25,5 @@ scope 안 buildable 이슈를 소진하면 끝난다.
 - Phase 반환은 `scope_additions: [{issue, related_to, relation_type, evidence}]`를 포함한다. 새 생성 수가 아니라
   이번 라운드에 처음 편입된 빌드가능 고유 번호 수가 scope 큐다.
 - scope 큐가 0, scope의 미완료 buildable 이슈가 0, persona가 실제 실행된 라운드에서 수렴한다.
-  scope 안에 build 제외 클래스가 남으면 `stopped`로 번호·사유를 보고한다.
+  scope 안에 미완료 에픽 또는 그 leaf가 build 제외 클래스만 남으면 `blocked`로 번호·사유·해제 조건을 보고한다.
 - build 완료 보고는 `scope: issue-closure:#N`을 포함한다. `drained`와 `excluded_only`는 이 scope 기준이다.
