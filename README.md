@@ -153,8 +153,9 @@ RFP(과업지시서) 한 장에서 프로젝트의 기획·기준 문서와 이�
 ```
 
 **`loop`** — 백로그를 태우는 것을 넘어 **더 만들 것이 없어질 때까지** 일감을 스스로 찾습니다. 한
-라운드는 `build`(백로그 소진) → `gap`(문서 대비 gap을 이슈로) → `build` → `persona-test`(고객 관점
-문제를 이슈로) → `build`이고, **한 라운드가 새 빌드가능 이슈를 하나도 만들지 못하면** 수렴·종료합니다.
+라운드는 `build`(백로그 소진) → `gap`(문서 대비 gap을 이슈로) → `build` → `design-review`(그 라운드에 UI를
+바꿨을 때) → `build` → `persona-test`(고객 관점 문제를 이슈로) → `build`이고, **한 라운드가 새 빌드가능
+이슈를 하나도 만들지 못하면** 수렴·종료합니다.
 인자 없이 `/project`만 쳐도 전체 `loop`로 갑니다. `/project #10`과 `/project loop #10`은 parent/sub-issue·선행/후행·명시적 관련 링크와 scope 안 gap·design·persona 파생 이슈를 재귀적으로 처리하고, #10 관련 범위가 수렴하면 멈춥니다.
 
 수렴 안전장치(`review-forever`와 같은 불변식):
@@ -178,7 +179,7 @@ RFP(과업지시서) 한 장에서 프로젝트의 기획·기준 문서와 이�
 | `setup`                 | 그 subagent의 `WebSearch`·`WebFetch` (없으면 강등)                           | Claude Code 기본 제공                         |
 | `prd-to-issue`, `build` | `gh` CLI (인증된 상태)                                                      | GitHub CLI                                    |
 | `build`                 | `codebase-review` 리뷰어 지침 문서 (9.5단계가 직접 dispatch — 트리아지·수정도 build) | 이 플러그인                          |
-| `loop`                  | `build`·`gap`·`persona-test` + 그 의존 전부, persona용 실행 서비스·브라우저 | 이 플러그인 / 위                              |
+| `loop`                  | `build`·`gap`·`persona-test` + 그 의존 전부, 선택적 `design-review`, persona용 실행 서비스·브라우저 | 이 플러그인 / 위 + gstack (`design-review`)   |
 
 의존 대상이 없으면 해당 서브커맨드는 절차를 임의로 재구현하지 않고 중단합니다. 단, setup의 웹 도구만
 예외로 강등해 진행합니다.
@@ -302,7 +303,7 @@ gritive/
 │       │                     #   선정 · 사람 작업 이슈 생성 · 리뷰/PR · 머지)
 │       ├── build-issue.md    # 이슈 하나를 맡는 subagent 지침
 │       │                     #   (split · Coverage Plan · 구현 · 검증 · Audit)
-│       ├── loop.md           # build→gap→build→persona-test→build 수렴 루프
+│       ├── loop.md           # build→gap→build→design-review→build→persona-test→build 수렴 루프
 │       ├── hard-gates.md     # build가 구현하지 않는 것 · 시크릿 값 규칙
 │       ├── followup-issues.md    # 후속 이슈 종류별 양식
 │       ├── issue-registration.md # 이슈 등록 공통 규약 (컨벤션·중복·폴백)

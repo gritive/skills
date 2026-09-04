@@ -48,11 +48,12 @@
 - **완료 조건: 템플릿의 baseline 불릿 전건에 대해 추가 / 이미 존재 / 보류(사용자 확인) 중 하나를
   판정한다** — 판정하지 않은 불릿이 0건일 때 이 단계가 끝난다.
 
-### 4. design-guide 인터랙션 규약 backfill (`docs/design-guide.md`)
+### 4. design-guide 인터랙션 규약 backfill
 
 `build`의 Storybook 표준 story backfill과 `gap`의 규약 준수 리뷰는 둘 다 design-guide가 규약을 선언했을 때 발동한다. 이 단계는 규약 절이 없는 기존 프로젝트에 그 절을 채워 두 기능이 발동하게 한다.
 
-- 대상에 `docs/design-guide.md`가 **없으면 건너뛴다.** 여기서 design-guide를 새로 만들지 않는다 —
+- 1단계에서 읽은 대상 `CLAUDE.md`의 "문서 라우팅" 표에서 design-guide의 실제 저장소 내부 경로를 먼저 확정한다. 표에 경로가 없을 때만 `docs/design-guide.md`를 통상 경로로 시도한다.
+- 확정한 경로에 design-guide가 **없으면 건너뛴다.** 여기서 design-guide를 새로 만들지 않는다 —
   그건 `setup` 5단계의 일이다.
 - design-guide가 있고 **"인터랙션 패턴" 절이 없으면** 그 절을 additive로 더한다. 보강 내용은
   **이 스킬 디렉터리의 `references/interaction-baseline.md`를 읽어 수행한다.**

@@ -157,13 +157,15 @@ leaf로 소유하면 전역 build는 다른 독립 후보를 계속 처리하고
 
 3단계 판정을 통과한 이슈마다 구현 전에 다음을 수행한다. 묶음이면 모든 이슈가 성공해야 한다.
 
+보드 상태를 바꾸기 전에 `git fetch origin <base>`로 원격 base ref를 최신화한다. 이 명령이 실패하면 이슈를 소유하지 말고 멈추고 보고한다.
+
 1. 선택 이슈가 보드에 없으면 0단계에서 읽은 커맨드로 연결하고, [references/project-board-status.md](references/project-board-status.md)의 단건 조회로 item ID를 얻는다. leaf를 선택했으면 모든 상위 에픽 root도 같은 보드에 연결돼 있는지 확인하고, 없으면 연결한다.
 2. `gh project item-edit --id <item ID> --project-id <project ID> --field-id <Status field ID> --single-select-option-id <In Progress option ID>`로 선택 이슈의 `Status`를 `In Progress`로 설정한다. leaf의 상위 에픽 root도 같은 커맨드로 `In Progress`로 설정한다 — 이미 `In Progress`면 그대로 둔다.
 3. 단건 조회로 선택 이슈와 모든 상위 에픽 root가 보드에 연결됐고 `Status = In Progress`인지 확인한다. 연결·설정·확인 중 하나라도 실패하면 브랜치 생성·subagent dispatch 전에 멈추고 보고한다.
 
 선택 이슈와 상위 에픽 root가 모두 보드에 연결되고 `In Progress`인 것이 개발 시작 조건이다.
 
-확인이 끝나면 확정한 base에서 이슈별 작업 브랜치를 `git checkout -b <branch> origin/<base>`로 만든다. **`git reset --hard` / `checkout -f` / `clean -fd` / `branch -D` / `push --force`는 이 루프에서 절대 쓰지 않는다.** 워킹 트리 때문에 깨끗한 checkout이 안 되면 멈추고 보고한다.
+확인이 끝나면 최신 `origin/<base>`에서 이슈별 작업 브랜치를 `git checkout -b <branch> origin/<base>`로 만든다. 직전 PR의 squash merge 뒤에도 다음 이슈가 이전 base에 얹히지 않게 하는 시작 조건이다. **`git reset --hard` / `checkout -f` / `clean -fd` / `branch -D` / `push --force`는 이 루프에서 절대 쓰지 않는다.** 워킹 트리 때문에 깨끗한 checkout이 안 되면 멈추고 보고한다.
 
 ### 3.5. 4~8단계는 이슈마다 fresh subagent에 위임한다
 
