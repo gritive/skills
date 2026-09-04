@@ -21,6 +21,13 @@ RFP에서 프로젝트 문서와 이슈를 만들고 백로그를 자율 처리�
 
 해당 파일을 읽고 나머지 인자를 그대로 전달한다. 각 subcommand가 자신의 의존성과 중단 조건을 검사한다.
 
+## 공통 subagent 모델 라우팅
+
+어느 subcommand든 subagent를 dispatch하기 전에
+[`references/subagent-model-routing.md`](references/subagent-model-routing.md)를 읽고 적용한다. setup의 리서치,
+build의 구현·리뷰, loop의 gap·design·persona 등 이 스킬에서 발생하는 모든 dispatch에 같은 규칙을 쓴다.
+하위 문서가 모델을 따로 고정하지 않는 한 이 공통 규칙이 모델 선택의 유일한 정의다.
+
 ## 인자 문법
 
 - `setup`: RFP 경로 하나를 요구한다.
