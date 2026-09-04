@@ -166,7 +166,7 @@ leaf로 소유하면 전역 build는 다른 독립 후보를 계속 처리하고
 
 선택 이슈와 상위 에픽 root가 모두 보드에 연결되고 `In Progress`인 것이 개발 시작 조건이다.
 
-확인이 끝나면 최신 `origin/<base>`에서 이슈별 작업 브랜치를 `git checkout -b <branch> origin/<base>`로 만든다. 직전 PR의 squash merge 뒤에도 다음 이슈가 이전 base에 얹히지 않게 하는 시작 조건이다. **`git reset --hard` / `checkout -f` / `clean -fd` / `branch -D` / `push --force`는 이 루프에서 절대 쓰지 않는다.** 워킹 트리 때문에 깨끗한 checkout이 안 되면 멈추고 보고한다.
+확인이 끝나면 최신 `origin/<base>`에서 이슈별 작업 브랜치를 `git checkout -b <branch> origin/<base>`로 만든다. 직전 PR의 squash merge 뒤에도 다음 이슈가 이전 base에 얹히지 않게 하는 시작 조건이다. **`git reset --hard` / `checkout -f` / `clean -fd` / `push --force`는 이 루프에서 절대 쓰지 않는다. `git branch -D`는 10단계에서 merge가 확인된 정확한 feature branch를 정리할 때만 쓴다.** 워킹 트리 때문에 깨끗한 checkout이 안 되면 멈추고 보고한다.
 
 ### 3.5. 4~8단계는 이슈마다 fresh subagent에 위임한다
 
@@ -300,11 +300,24 @@ subagent가 **`build-issue.md`를 Read해서** 수행하고, 위 반환 계약�
 
 1. **CI를 확인한다.** `gh pr checks <N>`이 pending이면 끝날 때까지 기다린다. 실패하면 **멈추고
    보고한다** — 검증 실패는 리뷰 발견이 아니므로 미룰 수 없다.
-2. **머지한다.** `gh pr merge <N> --squash --delete-branch`. 저장소가 squash를 막아 두었으면 허용된
-   방식을 쓴다.
+2. **머지한다.** 해당 이슈의 독립 worktree에서 `gh pr merge <N> --squash --delete-branch`를 실행한다.
+   merge commit이나 rebase merge로 대체하지 않는다. `--delete-branch`로 merge와 함께 remote feature
+   branch를 삭제한다. 다른 worktree에서 실행하면 `gh`가 feature worktree까지 제거할 수 있으므로 반드시
+   해당 feature worktree 안에서 실행한다.
 3. **머지를 확인한다.** `gh pr view <N> --json state,mergedAt`이 실제 merged일 때만 다음으로 간다.
    merge 실패 / PR closed without merge면 멈추고 보고한다.
-4. **배포는 대상 프로젝트 `CLAUDE.md`의 `## Deploy` 절이 있을 때만 한다.**
+4. **feature branch를 정리하되 worktree는 유지한다.** 2단계의 `--delete-branch`가 같은 merge 호출에서 원격
+   branch를 삭제한다. `git ls-remote --exit-code --heads origin <branch>`는 **exit 2만 원격 ref 없음**으로
+   인정한다. exit 0은 branch가 남은 것이고 그 밖의 코드는 조회 실패이므로, 둘 다 다음 이슈로 넘어가지
+   말고 실제 출력을 보고한다.
+   원격 삭제와 3단계 merge 확인이 모두 끝난 뒤 `git show-ref --verify --quiet refs/heads/<branch>`로
+   로컬 ref를 확인한다. `gh`가 이미 삭제해 exit 1이면 추가 작업을 하지 않는다. exit 0이고 해당 feature
+   worktree가 아직 그 branch를 checkout 중이면 `git status --short`가 비어 있는지 확인하고
+   `git switch --detach`로 branch를 놓은 다음 `git branch -D <branch>`로 정확한 로컬 feature branch만
+   삭제한다. 상태가 깨끗하지 않으면 삭제하지 말고 멈춰 보고한다. 마지막으로 같은 `git show-ref`가
+   **exit 1이어야 정리 성공**이다. 그 밖의 종료 코드나 남은 ref는 중단하고 보고한다. worktree 디렉터리는
+   삭제하지 않는다.
+5. **배포는 대상 프로젝트 `CLAUDE.md`의 `## Deploy` 절이 있을 때만 한다.**
    - **절이 있으면**: 거기 적힌 명령을 그대로 실행하고, 헬스체크 URL이 있으면 응답을 확인한다.
      배포 실패나 헬스체크 실패는 **중단**이다.
    - **절이 없으면**: 배포를 건너뛰고 다음 이슈로 계속 간다 — 프로젝트 초기에는 배포
