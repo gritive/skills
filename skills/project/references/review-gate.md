@@ -1,7 +1,8 @@
 # 리뷰 게이트 — 실행·상태값·발견 처리·PR 생성
 
-`build.md` 9.5단계에서 읽고 수행한다. **이 문서가 리뷰 게이트의 유일한 정의다** — 실행 여부, 상태값,
-발견 처리, 패스 예산, PR 본문이 전부 여기 있다. `<base>`는 `build.md` 0단계가 확정한 base branch다.
+`build.md` 9.5단계에서 읽고 수행한다. **이 문서가 리뷰·PR 게이트의 유일한 정의다** — PR 전 최신
+base 통합, 실행 여부, 상태값, 발견 처리, 패스 예산, PR 본문이 전부 여기 있다. `<base>`는
+`build.md` 0단계가 확정한 base branch다.
 
 `--skip-review`이면 리뷰를 호출하지 않고 `gate_status`를 `skipped`로 두며, PR 본문과 완료 보고에
 `skipped (--skip-review)`를 기록한다. 구현 검증·CI와 다른 중단 조건은 어느 경로에서도 유지한다.
@@ -9,6 +10,25 @@
 **그 밖에는 이 세션이 리뷰어를 직접 dispatch한다 — `gritive:codebase-review` 스킬을 거치지 않는다.**
 리뷰어를 이 세션의 **자식으로 직접** 띄운다. 코드 본문과 diff는 자식 컨텍스트에서 끝나고 이 세션에는
 발견 목록만 들어온다.
+
+0. 최신 base에 통합한 뒤 검증한다. 이 단계는 `--skip-review`여도 생략하지 않는다.
+
+   ```bash
+   git fetch origin <base>
+   git rebase origin/<base>
+   ```
+
+   rebase 충돌은 이슈 요구사항·기존 코드 패턴으로 안전하게 판정할 수 있는 범위에서 해결한다. 해결한 파일을
+   `git add`한 뒤 `git rebase --continue`로 끝까지 진행한다. 안전한 해결을 고를 수 없거나 해결이 원 이슈 범위를
+   실질적으로 넘으면 `git rebase --abort`로 rebase 전 상태를 복원한다. 성공했어도 최신 base의 API·타입·의존성
+   변경으로 깨질 수 있으므로, 3.5단계 subagent가 돌려준 7단계의 **해당 검증 명령을 모두 다시 실행**하고 실제
+   출력을 남긴다.
+
+   rebase를 끝내지 못했거나 재검증이 실패하면 PR을 만들지 않는다. 대신 `build.md` 3.5단계의
+   **"`build-blocked` 이슈"** 절을 수행해 원 이슈에 실패 사유·실제 출력·작업 브랜치명을 남기고
+   `build-blocked` 라벨을 붙인 뒤 다음 독립 이슈로 간다. 이 보류 처리를 끝낼 수 없거나 워킹 트리가 깨끗하지
+   않으면 중단·보고한다. 이 통합·재검증을 리뷰보다 앞에 둬야 충돌 해결분도
+   `origin/<base>...HEAD` 리뷰 범위에 들어간다.
 
 1. 리뷰 대상 파일을 수집한다.
 
@@ -20,9 +40,9 @@ git diff --name-only --diff-filter=d origin/<base>...HEAD
    **명령의 종료 상태를 확인한다.** 0이 아니면(얕은 클론, merge base 부재 등) 목록이 비어 있어도
    대상 없음이 아니다 — `review_status`를 `aborted (리뷰 대상 수집 실패: <명령 출력>)`로 두고 7번으로
    간다. 종료 상태가 0이고 목록이 비었을 때만 `no-target`으로 두고 7번으로 간다.
-   **목록이 500개를 넘으면** 그대로 띄우지 않는다 — `review_status`를 `aborted (리뷰 대상 과다: <개수>)`로
-   두고 7번으로 간다. 이 경우 `aborted`의 재시도(같은 명령을 다시 돌림)는 같은 결과를 내므로,
-   `gate_status` 표대로 두 번째 `aborted`에서 중단하고 사용자에게 범위 축소를 보고한다.
+   **목록이 500개를 넘으면** 그대로 띄우지 않는다 — 이슈가 리뷰 가능한 범위를 넘은 것이므로
+   `build.md` 3.5단계의 **"`build-blocked` 이슈"** 절을 수행해 범위 축소가 필요하다는 사유·파일 수·작업
+   브랜치명을 남기고 다음 독립 이슈로 간다. 같은 명령 재시도는 같은 결과를 내므로 하지 않는다.
 
 2. backend·frontend·security 리뷰어를 **한 메시지에서 동시에** dispatch한다. Agent 툴에는
    `description`·`subagent_type`·`prompt`만 주고 `name`은 주지 않는다. dispatch는 비동기이므로
@@ -44,8 +64,9 @@ git diff --name-only --diff-filter=d origin/<base>...HEAD
 6. 고정한 큐를 재검증한다. **수정→재검증은 최대 2패스다.** 2패스를 돌고도 남은 발견은 조건 없이
    `unresolved`로 두고, 후속 이슈(`../followup-issues.md`의 `리뷰 잔여`)로 넘기고 진행한다 —
    2패스째가 또 수정을 불러도 그 수정은 하지 않고 `unresolved`로 떨어뜨린다.
-   **중단은 재검증 명령 자체가 실패했을 때만이다**(lint·build·test 오류로 재검증을 끝내지 못한 경우.
-   자동 진행 중단 조건).
+   재검증 명령 자체가 실패하면(lint·build·test 오류로 재검증을 끝내지 못한 경우) PR을 만들지 않고
+   `build.md` 3.5단계의 **"`build-blocked` 이슈"** 절을 수행해 이슈별 보류로 전환한 뒤 다음 독립 이슈로 간다.
+   2패스를 살아남은 발견은 여전히 `unresolved` 후속 이슈로 등록하고 진행한다.
 7. 아래 항목을 채워 이 단계의 판정 근거로 삼는다(PR 본문·완료 보고가 이것을 인용한다).
 
 | 필드 | 내용 |
@@ -66,7 +87,7 @@ git diff --name-only --diff-filter=d origin/<base>...HEAD
 | --- | --- |
 | `skipped` | `--skip-review`일 때만. PR로 진행 |
 | `no-target` | 리뷰 대상 파일 없음. 사유를 기록하고 PR로 진행 |
-| `aborted` | 무응답 도메인만 한 번 다시 dispatch하고, 다시 무응답이면 중단 |
+| `aborted` | 무응답 도메인만 한 번 다시 dispatch하고, 다시 무응답이면 중단. 리뷰 대상 과다는 1번에서 이슈별 `build-blocked`로 이미 처리한다 |
 | `completed` | 원시 `ran`이 수정·재검증과 발견 등록까지 끝냈을 때만 전이. PR로 진행 |
 
 리뷰가 코드를 고쳤으면 변경 파일의 자동 검증을 다시 실행한다.
@@ -94,4 +115,8 @@ git diff --name-only --diff-filter=d origin/<base>...HEAD
 - 생성한 후속 이슈
 
 Coverage Audit이 모두 `done`일 때만 `Closes #N`을 사용한다. 묶음이면 이슈마다 `Closes`를 적는다 —
-변경이 같아서 요구 충족이 동시에 성립한다. 그 뒤 PR을 만들고 `build.md` 10단계로 간다.
+변경이 같아서 요구 충족이 동시에 성립한다. 이 게이트 전에는 작업 브랜치를 원격에 push하지 않는다. rebase와
+리뷰가 끝난 뒤 `git push -u origin <branch>`로 처음 publish한 다음 PR을 만든다. 원격에 같은 작업 브랜치가
+이미 있으면 덮어쓰지 않는다. 대신 `build.md` 3.5단계의 **"`build-blocked` 이슈"** 절을 수행해 원격 브랜치
+충돌과 작업 브랜치명을 남기고 다음 독립 이슈로 간다. `push --force` / `--force-with-lease`는 어떤 경로에서도
+쓰지 않는다. 첫 push가 성공했을 때만 PR을 만들고 `build.md` 10단계로 간다.
