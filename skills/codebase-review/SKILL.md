@@ -184,9 +184,8 @@ Agent 툴에는 `description`·`subagent_type`·`prompt`만 준다. `description
 손에 리포트가 하나도 없어 Phase 4의 반환물 검증이 전 도메인을 무응답으로 판정하고, 멀쩡히 도는
 리뷰어를 두고 `aborted`가 나간다.
 
-**리뷰어는 플러그인 에이전트가 아니라 이 디렉터리의 문서다** — `reviewers/backend.md`,
-`reviewers/frontend.md`, `reviewers/security.md`, `reviewers/conformance.md`. subagent에 **경로를 넘기고
-Read해서 그대로 수행하게 한다**(원문 전달).
+**리뷰어는 플러그인 에이전트가 아니라 이 디렉터리의 문서다** — 경로는 「리뷰 도메인」 표의
+「지침 문서」 열이다. subagent에 **경로를 넘기고 Read해서 그대로 수행하게 한다**(원문 전달).
 
 `subagent_type`은 `general-purpose`를 쓴다. 리뷰는 코드를 읽고 판정하는 일이라 탐색 전용
 에이전트(Claude Code의 `Explore` 등)로는 수행되지 않는다 — 그런 에이전트는 위치를 찾아 돌려줄 뿐
