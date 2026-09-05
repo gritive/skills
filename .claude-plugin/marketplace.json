@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Comprehensive codebase review with backend, frontend, security, and conformance reviewers + a review-until-clean loop + persona-based UX testing + RFP-to-project bootstrapping with autonomous issue backlog burndown.",
-    "version": "0.4.49"
+    "version": "0.4.50"
   },
   "plugins": [
     {
