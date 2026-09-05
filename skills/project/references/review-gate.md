@@ -44,16 +44,19 @@ git diff --name-only --diff-filter=d origin/<base>...HEAD
    `build.md` 3.5단계의 **"`build-blocked` 처리 절차"** 절을 수행해 범위 축소가 필요하다는 사유·파일 수·작업
    브랜치명을 남기고 다음 독립 이슈로 간다. 같은 명령 재시도는 같은 결과를 내므로 하지 않는다.
 
-2. backend·frontend·security 리뷰어를 **한 메시지에서 동시에** dispatch한다. 모델은
-   `subagent-model-routing.md`로 각각 판단해 호스트가 지원하는 override 필드에 지정한다. 그 밖의 Agent 툴
-   필드는 `description`·`subagent_type`·`prompt`만 주고 `name`은 주지 않는다. dispatch는 비동기이므로
-   **세 도메인의 완료 알림을 전부 받은 뒤에** 3번으로 간다 — 스폰 호출의 반환값은 리포트가 아니다.
-   `../../codebase-review/SKILL.md`의 Phase 3에서 **가져오는 것은 dispatch 프롬프트 양식, 범위 계약,
-   반환(리포트) 규약뿐이다.** **Phase 1의 신호 게이팅 표는 적용하지 않는다** — 프론트엔드 파일이
+2. `../../codebase-review/SKILL.md`의 「리뷰 도메인」 표에 있는 **모든 도메인**을 **한 메시지에서
+   동시에** dispatch한다. 도메인 집합·지침 문서 경로·리포트 헤더 줄의 유일한 출처는 그 표다 —
+   이 문서는 도메인을 열거하지 않는다. 모델은
+   `subagent-model-routing.md`로 각각 판단해 호스트가 지원하는 override 필드에 지정한다.
+   **띄운 도메인 전부의 완료 알림을 받은 뒤에** 3번으로 간다.
+   그 스킬 Phase 3에서 **가져오는 것은 dispatch 프롬프트 양식, 범위 계약, 반환(리포트) 규약이고,
+   도메인별 추가 전달값도 그대로 따른다.** **Phase 1의 신호 게이팅 표는 적용하지 않는다** — 프론트엔드 파일이
    0개여도 frontend를 띄운다. 그 스킬에서 `--domain`으로 강제 호출한 도메인을 게이팅하지 않는 것과
    같은 취급이고, 게이팅을 적용하면 3번이 안 띄운 도메인을 무응답으로 세어 멀쩡한 이슈에서 루프가
-   멈춘다. 리뷰어 지침 문서는 `../../codebase-review/reviewers/backend.md`·`frontend.md`·`security.md`이고
-   경로를 그대로 넘긴다. `mode: base-diff`, `base: origin/<base>...HEAD`, `files:`는 1번의 목록이다.
+   멈춘다. 지침 문서 경로는 표의 값을 `../../codebase-review/` 기준으로 풀어 그대로 넘긴다.
+   `mode: base-diff`, `base: origin/<base>...HEAD`, `files:`는 1번의 목록이다.
+   `이슈 참조`에는 **이 이슈의 번호를 그대로** 넣는다 — 이 루프는 어떤 이슈를 구현했는지 알고 있으므로
+   `conformance`의 1차 기준이 비지 않는다. 이슈 본문을 요약하거나 발췌해 넘기지 않는다.
 3. 리뷰어별 반환을 모아 `review_status`를 확정한다. 전부 리포트를 반환했으면 `ran`. 하나라도 반환하지
    않았으면 `aborted (리뷰어 무응답: <도메인>)`.
 4. `ran`이면 범위 안 발견을 확정한다. **이 최초 큐가 재검증 대상으로 고정된다.** 보류와 범위 밖

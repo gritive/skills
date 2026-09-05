@@ -45,11 +45,10 @@
   `git symbolic-ref --quiet --short refs/remotes/origin/HEAD`(성공하면 `origin/` 접두어를 뗀 이름),
   실패하면 `origin/main` 존재 확인, 그것도 없으면 `origin/master` 존재 확인 순서로 시도한다.
   **셋 다 실패하면 멈추고 보고한다** — base를 모르면 브랜치도 리뷰 범위도 정할 수 없다.
-- `gh` 인증을 확인한다. `--skip-review`가 아닐 때만 9.5단계가 읽고 dispatch할 문서
-  (`../codebase-review/SKILL.md`, `../codebase-review/reviewers/backend.md`·`frontend.md`·`security.md`,
-  세 리뷰어가 요구하는 `../codebase-review/reviewers/evidence-gate.md`, 그리고 backend·frontend가
-  요구하는 `../codebase-review/reviewers/shared-lenses.md`·`smell-baseline.md`)가 전부 있는지도
-  확인한다. 하나라도 없으면 멈추고 보고한다 — **리뷰는 그 리뷰어가 돌 때만 실행된 것이다.**
+- `gh` 인증을 확인한다. `--skip-review`가 아닐 때만 9.5단계가 읽고 dispatch할 문서가 전부 있는지도
+  확인한다. `../codebase-review/SKILL.md`를 읽어 「리뷰 도메인」 표의 **모든 도메인**의 지침 문서와,
+  그 표 아래가 리뷰어별로 요구한다고 적은 공유 규약 문서(`evidence-gate.md`·`shared-lenses.md`·
+  `smell-baseline.md`)를 `../codebase-review/` 기준으로 풀어 존재를 확인한다. 하나라도 없으면 멈추고 보고한다 — **리뷰는 그 리뷰어가 돌 때만 실행된 것이다.**
 - 대상 프로젝트 `CLAUDE.md`에 **`## Deploy` 절**이 있으면 배포 명령과 헬스체크 URL을 읽어 둔다.
   **없으면 그대로 진행한다** — 배포는 옵셔널이고, 없다는 사실만 완료 보고에 남긴다(10단계).
 - 대상 `CLAUDE.md`의 "이슈 관리" 섹션을 읽어 org·보드 번호와 보드 연결 커맨드를 파악한다. `gh project view <보드 번호> --owner <org> --format json`으로 project ID를, `gh project field-list <보드 번호> --owner <org> --format json`으로 `Status` 필드와 `In Progress` 옵션의 ID를 확인한다.
