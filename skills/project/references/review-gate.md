@@ -25,7 +25,7 @@ base 통합, 실행 여부, 상태값, 발견 처리, 패스 예산, PR 본문�
    출력을 남긴다.
 
    rebase를 끝내지 못했거나 재검증이 실패하면 PR을 만들지 않는다. 대신 `build.md` 3.5단계의
-   **"`build-blocked` 이슈"** 절을 수행해 원 이슈에 실패 사유·실제 출력·작업 브랜치명을 남기고
+   **"`build-blocked` 처리 절차"** 절을 수행해 원 이슈에 실패 사유·실제 출력·작업 브랜치명을 남기고
    `build-blocked` 라벨을 붙인 뒤 다음 독립 이슈로 간다. 이 보류 처리를 끝낼 수 없거나 워킹 트리가 깨끗하지
    않으면 중단·보고한다. 이 통합·재검증을 리뷰보다 앞에 둬야 충돌 해결분도
    `origin/<base>...HEAD` 리뷰 범위에 들어간다.
@@ -41,7 +41,7 @@ git diff --name-only --diff-filter=d origin/<base>...HEAD
    대상 없음이 아니다 — `review_status`를 `aborted (리뷰 대상 수집 실패: <명령 출력>)`로 두고 7번으로
    간다. 종료 상태가 0이고 목록이 비었을 때만 `no-target`으로 두고 7번으로 간다.
    **목록이 500개를 넘으면** 그대로 띄우지 않는다 — 이슈가 리뷰 가능한 범위를 넘은 것이므로
-   `build.md` 3.5단계의 **"`build-blocked` 이슈"** 절을 수행해 범위 축소가 필요하다는 사유·파일 수·작업
+   `build.md` 3.5단계의 **"`build-blocked` 처리 절차"** 절을 수행해 범위 축소가 필요하다는 사유·파일 수·작업
    브랜치명을 남기고 다음 독립 이슈로 간다. 같은 명령 재시도는 같은 결과를 내므로 하지 않는다.
 
 2. backend·frontend·security 리뷰어를 **한 메시지에서 동시에** dispatch한다. 모델은
@@ -66,7 +66,7 @@ git diff --name-only --diff-filter=d origin/<base>...HEAD
    `unresolved`로 두고, 후속 이슈(`../followup-issues.md`의 `리뷰 잔여`)로 넘기고 진행한다 —
    2패스째가 또 수정을 불러도 그 수정은 하지 않고 `unresolved`로 떨어뜨린다.
    재검증 명령 자체가 실패하면(lint·build·test 오류로 재검증을 끝내지 못한 경우) PR을 만들지 않고
-   `build.md` 3.5단계의 **"`build-blocked` 이슈"** 절을 수행해 이슈별 보류로 전환한 뒤 다음 독립 이슈로 간다.
+   `build.md` 3.5단계의 **"`build-blocked` 처리 절차"** 절을 수행해 이슈별 보류로 전환한 뒤 다음 독립 이슈로 간다.
    2패스를 살아남은 발견은 여전히 `unresolved` 후속 이슈로 등록하고 진행한다.
 7. 아래 항목을 채워 이 단계의 판정 근거로 삼는다(PR 본문·완료 보고가 이것을 인용한다).
 
@@ -118,6 +118,6 @@ git diff --name-only --diff-filter=d origin/<base>...HEAD
 Coverage Audit이 모두 `done`일 때만 `Closes #N`을 사용한다. 묶음이면 이슈마다 `Closes`를 적는다 —
 변경이 같아서 요구 충족이 동시에 성립한다. 이 게이트 전에는 작업 브랜치를 원격에 push하지 않는다. rebase와
 리뷰가 끝난 뒤 `git push -u origin <branch>`로 처음 publish한 다음 PR을 만든다. 원격에 같은 작업 브랜치가
-이미 있으면 덮어쓰지 않는다. 대신 `build.md` 3.5단계의 **"`build-blocked` 이슈"** 절을 수행해 원격 브랜치
+이미 있으면 덮어쓰지 않는다. 대신 `build.md` 3.5단계의 **"`build-blocked` 처리 절차"** 절을 수행해 원격 브랜치
 충돌과 작업 브랜치명을 남기고 다음 독립 이슈로 간다. `push --force` / `--force-with-lease`는 어떤 경로에서도
 쓰지 않는다. 첫 push가 성공했을 때만 PR을 만들고 `build.md` 10단계로 간다.

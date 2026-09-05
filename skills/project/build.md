@@ -93,7 +93,7 @@
   | 게이트/결정 | 본문이 "코드 작업이 아니라 게이트/결정"류로 명시 | 하드 게이트(`hard-gates.md`) |
   | 자격 증명 | `[credential]` 접두어 / `needs-credential` 라벨 | 발급·설정은 사람 작업 |
   | `question` | `question` 라벨 | 9단계에서 루프가 만든 사람·고객의 몫이다. 고객이 답해 새 구현이 필요해지면 라벨을 뗀 별도 이슈로 온다 |
-  | `build-blocked` | `build-blocked` 라벨 | 3.5단계의 게이트에서 두 번 실패했거나 9.5단계 최신 base 통합·리뷰 재검증을 끝내지 못해 사람이 봐야 한다(3.5단계 "`build-blocked` 이슈") |
+  | `build-blocked` | `build-blocked` 라벨 | 3.5단계의 게이트에서 두 번 실패했거나 9.5단계 최신 base 통합·리뷰 재검증을 끝내지 못해 사람이 봐야 한다(3.5단계 "`build-blocked` 처리 절차") |
   | 선행 미완 | `gh issue view <N> --json blockedBy,blocking`의 `blockedBy` 대상이 아직 열려 있음. native 관계가 없는 기존 이슈만 본문의 `선행:`을 읽기 호환으로 사용 | 선행이 닫히면 저절로 풀린다 |
 
   **에픽은 제외 클래스가 아니라 실행 그래프의 루트다.** `[Epic]` 접두어, native sub-issue, 본문의
@@ -221,12 +221,12 @@ leaf로 소유하면 전역 build는 다른 독립 후보를 계속 처리하고
   Audit이 덜 끝났으면 유효한 `verified`가 아니므로 같은 이슈를 다시 dispatch한다.
 - `implemented`는 **Coverage Audit 표가 있고 모든 행이 `done`일 때만 9단계로 간다.**
   표는 subagent만 만든다 — 표가 없으면 구현이 게이트를 통과한 적이 없는 것이다.
-  subagent를 같은 이슈로 한 번 더 dispatch하고, 두 번째도 표가 없으면 아래 "`build-blocked` 이슈"
+  subagent를 같은 이슈로 한 번 더 dispatch하고, 두 번째도 표가 없으면 아래 "`build-blocked` 처리 절차"
   규칙대로 처리한다.
 
 - `recovery_required`이면 아래 "recovery_required 처리" 규칙대로 처리한다.
 
-- `issue_blocked`이면 아래 **"`build-blocked` 이슈"** 절을 수행해 이슈에 근거를 남기고 라벨을 붙인 뒤,
+- `issue_blocked`이면 아래 **"`build-blocked` 처리 절차"** 절을 수행해 이슈에 근거를 남기고 라벨을 붙인 뒤,
   PR 없이 1단계로 돌아가 다음 독립 이슈를 고른다. 코멘트·라벨·깨끗한 워킹 트리 중 하나라도 확보하지 못하면
   `stopped`로 전환한다.
 
@@ -241,7 +241,7 @@ leaf로 소유하면 전역 build는 다른 독립 후보를 계속 처리하고
 
 recovery 이슈 자체가 `stopped`로 돌아왔을 때만 루프가 멈춘다.
 
-**`build-blocked` 이슈 — 그냥 넘어가면 무한 재시도가 된다.** 3.5단계 subagent가 `issue_blocked`를
+**`build-blocked` 처리 절차 — 그냥 넘어가면 무한 재시도가 된다.** 3.5단계 subagent가 `issue_blocked`를
 반환했거나 Audit 표 게이트에서 두 번 연속 실패했거나 9.5단계에서 최신 base rebase를 안전하게 끝내지 못했거나
 통합·리뷰 재검증이 실패한 이슈는 **다음 라운드 선정에서 다시 뽑힌다** — 백로그에 열린 채로 남아 있고 제외
 클래스도 아니기 때문이다. 그래서
@@ -300,23 +300,21 @@ subagent가 **`build-issue.md`를 Read해서** 수행하고, 위 반환 계약�
 
 1. **CI를 확인한다.** `gh pr checks <N>`이 pending이면 끝날 때까지 기다린다. 실패하면 **멈추고
    보고한다** — 검증 실패는 리뷰 발견이 아니므로 미룰 수 없다.
-2. **머지한다.** 해당 이슈의 독립 worktree에서 `gh pr merge <N> --squash --delete-branch`를 실행한다.
-   merge commit이나 rebase merge로 대체하지 않는다. `--delete-branch`로 merge와 함께 remote feature
-   branch를 삭제한다. 다른 worktree에서 실행하면 `gh`가 feature worktree까지 제거할 수 있으므로 반드시
-   해당 feature worktree 안에서 실행한다.
+2. **머지한다.** 이슈 작업 브랜치가 checkout된 저장소에서 `gh pr merge <N> --squash --delete-branch`를
+   실행한다. merge commit이나 rebase merge로 대체하지 않는다. `--delete-branch`로 merge와 함께 remote
+   feature branch를 삭제한다.
 3. **머지를 확인한다.** `gh pr view <N> --json state,mergedAt`이 실제 merged일 때만 다음으로 간다.
    merge 실패 / PR closed without merge면 멈추고 보고한다.
-4. **feature branch를 정리하되 worktree는 유지한다.** 2단계의 `--delete-branch`가 같은 merge 호출에서 원격
+4. **feature branch를 정리한다.** 2단계의 `--delete-branch`가 같은 merge 호출에서 원격
    branch를 삭제한다. `git ls-remote --exit-code --heads origin <branch>`는 **exit 2만 원격 ref 없음**으로
    인정한다. exit 0은 branch가 남은 것이고 그 밖의 코드는 조회 실패이므로, 둘 다 다음 이슈로 넘어가지
    말고 실제 출력을 보고한다.
    원격 삭제와 3단계 merge 확인이 모두 끝난 뒤 `git show-ref --verify --quiet refs/heads/<branch>`로
-   로컬 ref를 확인한다. `gh`가 이미 삭제해 exit 1이면 추가 작업을 하지 않는다. exit 0이고 해당 feature
-   worktree가 아직 그 branch를 checkout 중이면 `git status --short`가 비어 있는지 확인하고
-   `git switch --detach`로 branch를 놓은 다음 `git branch -D <branch>`로 정확한 로컬 feature branch만
-   삭제한다. 상태가 깨끗하지 않으면 삭제하지 말고 멈춰 보고한다. 마지막으로 같은 `git show-ref`가
-   **exit 1이어야 정리 성공**이다. 그 밖의 종료 코드나 남은 ref는 중단하고 보고한다. worktree 디렉터리는
-   삭제하지 않는다.
+   로컬 ref를 확인한다. `gh`가 이미 삭제해 exit 1이면 추가 작업을 하지 않는다. exit 0이고 아직 그
+   branch를 checkout 중이면 `git status --short`가 비어 있는지 확인하고 `git switch --detach`로 branch를
+   놓은 다음 `git branch -D <branch>`로 정확한 로컬 feature branch만 삭제한다. 상태가 깨끗하지 않으면
+   삭제하지 말고 멈춰 보고한다. 마지막으로 같은 `git show-ref`가 **exit 1이어야 정리 성공**이다. 그 밖의
+   종료 코드나 남은 ref는 중단하고 보고한다.
 5. **배포는 대상 프로젝트 `CLAUDE.md`의 `## Deploy` 절이 있을 때만 한다.**
    - **절이 있으면**: 거기 적힌 명령을 그대로 실행하고, 헬스체크 URL이 있으면 응답을 확인한다.
      배포 실패나 헬스체크 실패는 **중단**이다.
@@ -337,7 +335,8 @@ subagent가 **`build-issue.md`를 Read해서** 수행하고, 위 반환 계약�
 
 - **제외(선정, 0~3단계)**: 아직 워킹 트리를 건드리지 않았다. 부적합 이슈는 **건너뛰고 다음 이슈로 간다.**
   2단계의 게이트·결정대기 이슈, 3단계의 하드 게이트 이슈, 0.5단계의 신뢰 경계 위반 이슈가
-  여기 속한다. 남은 이슈가 전부 제외되면 멈추고 보고한다.
+  여기 속한다. 남은 이슈가 전부 제외되고 미완료 에픽이 없으면 `excluded_only`로 완료 보고를 내고
+  이 호출을 끝낸다 — 루프 중단이 아니다.
 - **미완료 에픽(선정, 2단계)**: 에픽 자체가 제외됐거나 준비된 leaf 없이 남은 leaf가 전부 제외
   클래스면 구현 전이라도 `blocked`다. 에픽은 제외 목록 뒤에 숨는 이슈가 아니라 완료할 제품 범위이므로
   번호·막힌 대상·해제 조건을 남긴다. 전역 build는 독립 후보를 계속 처리하고, scope build는 그 범위에서
@@ -352,7 +351,7 @@ subagent가 **`build-issue.md`를 Read해서** 수행하고, 위 반환 계약�
 - **9.5단계가 정한 조건.** 리뷰 미실행 판정과 재요청 횟수도 그 단계가 정한다.
 - **`build-blocked` 처리 자체를 못 끝낸 경우** — 3.5단계 `issue_blocked` 또는 Audit 표 게이트 두 번 실패,
   9.5단계 최신 base 통합·리뷰 재검증 실패. 실패 자체는 중단이 아니다 — 실패 사유를 코멘트로 남기고 라벨을 붙인 뒤 다음 독립
-  이슈로 간다(3.5단계 "`build-blocked` 이슈"). **코멘트·라벨·깨끗한 워킹 트리 중 하나를 확보하지 못했을
+  이슈로 간다(3.5단계 "`build-blocked` 처리 절차"). **코멘트·라벨·깨끗한 워킹 트리 중 하나를 확보하지 못했을
   때만 중단이다** — 그대로 넘어가면 그 이슈가 매 라운드 다시 뽑히거나 사용자 변경을 침범한다
 - **리뷰가 아예 안 돈 경우**(`aborted` 두 번. 9.5단계). **리뷰를 못 끝낸 경우는 중단이 아니다** —
   남은 발견을 이슈로 등록하고 평소대로 진행한다. **발견 이슈 번호를 하나라도 못 얻었을 때만 중단이다**

@@ -13,9 +13,8 @@ grep -Fq 'git switch --detach' "$build"
 grep -Fq 'git branch -D <branch>' "$build"
 grep -Fq 'git show-ref --verify --quiet refs/heads/<branch>' "$build"
 grep -Fq 'exit 1이어야 정리 성공' "$build"
-grep -Fq 'worktree 디렉터리는 삭제하지 않는다' "$build"
 
-if grep -Fq 'git worktree remove' "$build"; then
-  echo 'merge flow must not remove the feature worktree' >&2
+if grep -Fq 'worktree' "$build"; then
+  echo 'merge flow must not assume a per-issue worktree' >&2
   exit 1
 fi
