@@ -105,7 +105,7 @@ build가 **어느 경우에도 구현하지 않는** 이슈는 큐에서 뺀다.
 
 ### 보드 조회 예산
 
-각 내부 build는 열린 이슈 목록만 fresh fetch하고, 우선순위상 검토하는 후보·상위 에픽만 단건으로 재검증한다(`build.md` 1단계). 어느 Phase에서도 `gh project item-list --limit 1000`를 호출하지 않는다. 새로 연결하거나 Status를 바꾼 항목도 단건 확인한다.
+각 내부 build는 열린 이슈 목록을 fresh fetch하고, 우선순위상 검토하는 후보·상위 에픽만 단건 조회한다(`build.md` 1단계). 선정된 이슈는 착수 직전에도 이슈·보드 상태를 새로 조회해 자격을 재검증한다(`build.md` 3.25단계). 어느 Phase에서도 `gh project item-list --limit 1000`를 호출하지 않는다. 새로 연결하거나 Status를 바꾼 항목도 단건 확인한다.
 
 ### 모든 Phase에서 build를 호출하는 법 — 결과를 반드시 구분한다
 
